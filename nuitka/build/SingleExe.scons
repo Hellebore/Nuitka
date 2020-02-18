@@ -1484,21 +1484,6 @@ def getCompilerArch():
     return _compiler_arch
 
 
-if win_target:
-    # Check most common user error related to MinGW64. People install 32 and
-    # 64 variants and do not consider that MinGW64 could be 32 bits too.
-
-    if (getLinkerArch() or target_arch) != getCompilerArch():
-        sys.exit(
-            "Error, mismatch between Python ('%s') and C compiler ('%s') arches."
-            % (
-                "%s"
-                % (
-                    getLinkerArch() or target_arch or "unknown, but likely 'pei-x86-64'"
-                ),
-                getCompilerArch(),
-            )
-        )
 
 
 constants_bin_filename = os.path.join(source_dir, "__constants.bin")
