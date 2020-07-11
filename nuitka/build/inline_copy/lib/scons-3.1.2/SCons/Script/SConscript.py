@@ -140,11 +140,7 @@ def Return(*vars, **kw):
     except KeyError as x:
         raise SCons.Errors.UserError("Return of non-existent variable '%s'"%x)
 
-    if len(retval) == 1:
-        call_stack[-1].retval = retval[0]
-    else:
-        call_stack[-1].retval = tuple(retval)
-
+    call_stack[-1].retval = retval[0] if len(retval) == 1 else tuple(retval)
     stop = kw.get('stop', True)
 
     if stop:
@@ -176,11 +172,11 @@ def handle_missing_SConscript(f, must_exist=None):
         msg = "Calling missing SConscript without error is deprecated.\n" + \
               "Transition by adding must_exist=0 to SConscript calls.\n" + \
               "Missing SConscript '%s'" % f.get_internal_path()
-        SCons.Warnings.warn(SCons.Warnings.MissingSConscriptWarning, msg)
         SCons.Script._warn_missing_sconscript_deprecated = False
     else:
         msg = "Ignoring missing SConscript '%s'" % f.get_internal_path()
-        SCons.Warnings.warn(SCons.Warnings.MissingSConscriptWarning, msg)
+
+    SCons.Warnings.warn(SCons.Warnings.MissingSConscriptWarning, msg)
 
 def _SConscript(fs, *files, **kw):
     top = fs.Top
@@ -197,10 +193,7 @@ def _SConscript(fs, *files, **kw):
             if fn == "-":
                 exec(sys.stdin.read(), call_stack[-1].globals)
             else:
-                if isinstance(fn, SCons.Node.Node):
-                    f = fn
-                else:
-                    f = fs.File(str(fn))
+                f = fn if isinstance(fn, SCons.Node.Node) else fs.File(str(fn))
                 _file_ = None
 
                 # Change directory to the top of the source
@@ -544,10 +537,7 @@ class SConsEnvironment(SCons.Environment.Base):
                         globals.update(global_exports)
                         globals.update(exports)
                     else:
-                        if v in exports:
-                            globals[v] = exports[v]
-                        else:
-                            globals[v] = global_exports[v]
+                        globals[v] = exports[v] if v in exports else global_exports[v]
         except KeyError as x:
             raise SCons.Errors.UserError("Import of non-existent variable '%s'"%x)
 
@@ -578,11 +568,7 @@ class SConsEnvironment(SCons.Environment.Base):
         """
 
         def subst_element(x, subst=self.subst):
-            if SCons.Util.is_List(x):
-                x = list(map(subst, x))
-            else:
-                x = subst(x)
-            return x
+            return list(map(subst, x)) if SCons.Util.is_List(x) else subst(x)
         ls = list(map(subst_element, ls))
         subst_kw = {}
         for key, val in kw.items():

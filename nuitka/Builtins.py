@@ -116,7 +116,7 @@ def _getBuiltinNames():
 
 
 builtin_names, builtin_warnings = _getBuiltinNames()
-builtin_named_values = dict((getattr(builtins, x), x) for x in builtin_names)
+builtin_named_values = {getattr(builtins, x): x for x in builtin_names}
 builtin_named_values_list = tuple(builtin_named_values)
 
 assert "__import__" in builtin_names
@@ -129,11 +129,12 @@ builtin_all_names = builtin_names + builtin_exception_names + builtin_warnings
 
 
 def getBuiltinTypeNames():
-    result = []
+    result = [
+        builtin_name
+        for builtin_name in builtin_names
+        if isinstance(getattr(builtins, builtin_name), type)
+    ]
 
-    for builtin_name in builtin_names:
-        if isinstance(getattr(builtins, builtin_name), type):
-            result.append(builtin_name)
 
     return tuple(sorted(result))
 
@@ -188,7 +189,7 @@ def _getAnonBuiltins():
 
 
 builtin_anon_names, builtin_anon_codes = _getAnonBuiltins()
-builtin_anon_values = dict((b, a) for a, b in builtin_anon_names.items())
+builtin_anon_values = {b: a for a, b in builtin_anon_names.items()}
 
 # For being able to check if it's not hashable, we need something not using
 # a hash.

@@ -393,7 +393,7 @@ else:
                         if task.needs_execute():
                             # dispatch task
                             self.tp.put(task)
-                            jobs = jobs + 1
+                            jobs += 1
                         else:
                             task.executed()
                             task.postprocess()
@@ -404,7 +404,7 @@ else:
                 # back and put the next batch of tasks on the queue.
                 while True:
                     task, ok = self.tp.get()
-                    jobs = jobs - 1
+                    jobs -= 1
 
                     if ok:
                         task.executed()

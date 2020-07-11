@@ -60,9 +60,7 @@ def generate(env):
         env['SHCXXFLAGS'] = SCons.Util.CLVar('$CXXFLAGS -mminimal-toc')
         env['STATIC_AND_SHARED_OBJECTS_ARE_THE_SAME'] = 1
         env['SHOBJSUFFIX'] = '$OBJSUFFIX'
-    elif env['PLATFORM'] == 'hpux':
-        env['SHOBJSUFFIX'] = '.pic.o'
-    elif env['PLATFORM'] == 'sunos':
+    elif env['PLATFORM'] in ['hpux', 'sunos']:
         env['SHOBJSUFFIX'] = '.pic.o'
     # determine compiler version
     version = gcc.detect_version(env, env['CXX'])

@@ -63,10 +63,7 @@ except NameError:
         """
         Returns True if all elements of the iterable are true.
         """
-        for element in iterable:
-            if not element:
-                return False
-        return True
+        return all(iterable)
     builtins.all = all
     all = all
 
@@ -78,10 +75,7 @@ except NameError:
         """
         Returns True if any element of the iterable is true.
         """
-        for element in iterable:
-            if element:
-                return True
-        return False
+        return any(iterable)
     builtins.any = any
     any = any
 

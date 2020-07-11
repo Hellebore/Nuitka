@@ -157,11 +157,7 @@ def warnAbout(importing, module_name, parent_package, level, tried_names):
         if key not in warned_about:
             warned_about.add(key)
 
-            if parent_package is None:
-                full_name = module_name
-            else:
-                full_name = module_name
-
+            full_name = module_name
             if Plugins.suppressUnknownImportWarning(importing, full_name):
                 return
 

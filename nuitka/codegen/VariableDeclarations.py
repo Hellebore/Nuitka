@@ -67,7 +67,7 @@ class VariableDeclaration(object):
 
         return "%s%s%s%s;" % (
             c_type,
-            " " if self.c_type[-1] != "*" else "",
+            " " if c_type[-1] != "*" else "",
             self.code_name,
             array_decl,
         )

@@ -65,8 +65,6 @@ class FinalizeMarkups(FinalizationVisitorBase):
         if node.isStatementReturn() or node.isStatementGeneratorReturn():
             search = node
 
-            in_tried_block = False
-
             # Search up to the containing function, and check for a try/finally
             # containing the "return" statement.
             search = search.getParentReturnConsumer()
@@ -76,6 +74,8 @@ class FinalizeMarkups(FinalizationVisitorBase):
                 or search.isExpressionCoroutineObjectBody()
                 or search.isExpressionAsyncgenObjectBody()
             ):
+                in_tried_block = False
+
                 if in_tried_block:
                     search.markAsNeedsGeneratorReturnHandling(2)
                 else:
@@ -87,16 +87,19 @@ class FinalizeMarkups(FinalizationVisitorBase):
             if module_name.isCompileTimeConstant():
                 imported_module_name = module_name.getCompileTimeConstant()
 
-                if type(imported_module_name) in (str, unicode):
-                    if imported_module_name:
-                        imported_names.add(imported_module_name)
+                if (
+                    type(imported_module_name) in (str, unicode)
+                    and imported_module_name
+                ):
+                    imported_names.add(imported_module_name)
 
-        if node.isExpressionFunctionCreation():
-            if (
+        if node.isExpressionFunctionCreation() and (
+            (
                 not node.getParent().isExpressionFunctionCall()
                 or node.getParent().getFunction() is not node
-            ):
-                node.getFunctionRef().getFunctionBody().markAsNeedsCreation()
+            )
+        ):
+            node.getFunctionRef().getFunctionBody().markAsNeedsCreation()
 
         if node.isExpressionFunctionCall():
             node.getFunction().getFunctionRef().getFunctionBody().markAsDirectlyCalled()
@@ -119,9 +122,11 @@ class FinalizeMarkups(FinalizationVisitorBase):
                 left_arg = assign_source.getLeft()
 
                 if left_arg.isExpressionVariableRef():
-                    if assign_source.getLeft().getVariable() is target_var:
-                        if assign_source.isInplaceSuspect():
-                            node.markAsInplaceSuspect()
+                    if (
+                        assign_source.getLeft().getVariable() is target_var
+                        and assign_source.isInplaceSuspect()
+                    ):
+                        node.markAsInplaceSuspect()
                 elif left_arg.isExpressionLocalsVariableRefOrFallback():
                     assign_source.unmarkAsInplaceSuspect()
 
@@ -134,25 +139,26 @@ class FinalizeMarkups(FinalizationVisitorBase):
         if python_version < 300 and node.isStatementPublishException():
             node.getParentStatementsFrame().markAsFrameExceptionPreserving()
 
-        if python_version >= 300:
-            if (
+        if python_version >= 300 and (
+            (
                 node.isExpressionYield()
                 or node.isExpressionYieldFrom()
                 or node.isExpressionYieldFromWaitable()
+            )
+        ):
+            search = node.getParent()
+
+            while (
+                not search.isExpressionGeneratorObjectBody()
+                and not search.isExpressionCoroutineObjectBody()
+                and not search.isExpressionAsyncgenObjectBody()
             ):
-                search = node.getParent()
+                last_search = search
+                search = search.getParent()
 
-                while (
-                    not search.isExpressionGeneratorObjectBody()
-                    and not search.isExpressionCoroutineObjectBody()
-                    and not search.isExpressionAsyncgenObjectBody()
+                if (
+                    search.isStatementTry()
+                    and last_search == search.getBlockExceptHandler()
                 ):
-                    last_search = search
-                    search = search.getParent()
-
-                    if (
-                        search.isStatementTry()
-                        and last_search == search.getBlockExceptHandler()
-                    ):
-                        node.markAsExceptionPreserving()
-                        break
+                    node.markAsExceptionPreserving()
+                    break

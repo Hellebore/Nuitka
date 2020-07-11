@@ -53,11 +53,7 @@ def generateConditionalAndOrCode(to_name, expression, emit, context):
     # This is a complex beast, handling both "or" and "and" expressions,
     # and it needs to micro manage details.
     # pylint: disable=too-many-locals
-    if expression.isExpressionConditionalOr():
-        prefix = "or_"
-    else:
-        prefix = "and_"
-
+    prefix = "or_" if expression.isExpressionConditionalOr() else "and_"
     true_target = context.allocateLabel(prefix + "left")
     false_target = context.allocateLabel(prefix + "right")
     end_target = context.allocateLabel(prefix + "end")

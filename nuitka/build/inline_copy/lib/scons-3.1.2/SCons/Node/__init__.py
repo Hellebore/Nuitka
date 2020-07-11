@@ -211,9 +211,11 @@ def get_contents_entry(node):
 def get_contents_dir(node):
     """Return content signatures and names of all our children
     separated by new-lines. Ensure that the nodes are sorted."""
-    contents = []
-    for n in sorted(node.children(), key=lambda t: t.name):
-        contents.append('%s %s\n' % (n.get_csig(), n.name))
+    contents = [
+        '%s %s\n' % (n.get_csig(), n.name)
+        for n in sorted(node.children(), key=lambda t: t.name)
+    ]
+
     return ''.join(contents)
 
 def get_contents_file(node):
@@ -1128,8 +1130,7 @@ class Node(object, with_metaclass(NoSlotsPyPy)):
     BuildInfo = BuildInfoBase
 
     def new_ninfo(self):
-        ninfo = self.NodeInfo()
-        return ninfo
+        return self.NodeInfo()
 
     def get_ninfo(self):
         if self.ninfo is not None:
@@ -1138,8 +1139,7 @@ class Node(object, with_metaclass(NoSlotsPyPy)):
         return self.ninfo
 
     def new_binfo(self):
-        binfo = self.BuildInfo()
-        return binfo
+        return self.BuildInfo()
 
     def get_binfo(self):
         """
@@ -1274,10 +1274,7 @@ class Node(object, with_metaclass(NoSlotsPyPy)):
             self._add_child(self.depends, self.depends_set, depend)
         except TypeError as e:
             e = e.args[0]
-            if SCons.Util.is_List(e):
-                s = list(map(str, e))
-            else:
-                s = str(e)
+            s = list(map(str, e)) if SCons.Util.is_List(e) else str(e)
             raise SCons.Errors.UserError("attempted to add a non-Node dependency to %s:\n\t%s is a %s, not a Node" % (str(self), s, type(e)))
 
     def add_prerequisite(self, prerequisite):
@@ -1293,10 +1290,7 @@ class Node(object, with_metaclass(NoSlotsPyPy)):
             self._add_child(self.ignore, self.ignore_set, depend)
         except TypeError as e:
             e = e.args[0]
-            if SCons.Util.is_List(e):
-                s = list(map(str, e))
-            else:
-                s = str(e)
+            s = list(map(str, e)) if SCons.Util.is_List(e) else str(e)
             raise SCons.Errors.UserError("attempted to ignore a non-Node dependency of %s:\n\t%s is a %s, not a Node" % (str(self), s, type(e)))
 
     def add_source(self, source):
@@ -1307,10 +1301,7 @@ class Node(object, with_metaclass(NoSlotsPyPy)):
             self._add_child(self.sources, self.sources_set, source)
         except TypeError as e:
             e = e.args[0]
-            if SCons.Util.is_List(e):
-                s = list(map(str, e))
-            else:
-                s = str(e)
+            s = list(map(str, e)) if SCons.Util.is_List(e) else str(e)
             raise SCons.Errors.UserError("attempted to add a non-Node as source of %s:\n\t%s is a %s, not a Node" % (str(self), s, type(e)))
 
     def _add_child(self, collection, set, child):
@@ -1367,10 +1358,7 @@ class Node(object, with_metaclass(NoSlotsPyPy)):
         if self.ignore_set:
             iter = chain.from_iterable([_f for _f in [self.sources, self.depends, self.implicit] if _f])
 
-            children = []
-            for i in iter:
-                if i not in self.ignore_set:
-                    children.append(i)
+            children = [i for i in iter if i not in self.ignore_set]
         else:
             children = self.all_children(scan=0)
 
@@ -1501,9 +1489,7 @@ class Node(object, with_metaclass(NoSlotsPyPy)):
                 if t: Trace(': bactsig %s != newsig %s' % (bi.bactsig, newsig))
                 result = True
 
-        if not result:
-            if t: Trace(': up to date')
-
+        if not result and t: Trace(': up to date')
         if t: Trace('\n')
 
         return result
@@ -1528,7 +1514,7 @@ class Node(object, with_metaclass(NoSlotsPyPy)):
             s = kid.get_state()
             if s and (not state or s > state):
                 state = s
-        return (state == 0 or state == SCons.Node.up_to_date)
+        return state in [0, SCons.Node.up_to_date]
 
     def is_literal(self):
         """Always pass the string representation of a Node to
@@ -1759,10 +1745,7 @@ class Walker(object):
                 node = self.stack.pop()
                 del self.history[node]
                 if node:
-                    if self.stack:
-                        parent = self.stack[-1]
-                    else:
-                        parent = None
+                    parent = self.stack[-1] if self.stack else None
                     self.eval_func(node, parent)
                 return node
         return None

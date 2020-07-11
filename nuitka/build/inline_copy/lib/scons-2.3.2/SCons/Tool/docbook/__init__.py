@@ -142,10 +142,7 @@ def __create_output_dir(base_dir):
     root, tail = os.path.split(base_dir)
     dir = None
     if tail:
-        if base_dir.endswith('/'):
-            dir = base_dir
-        else:
-            dir = root
+        dir = base_dir if base_dir.endswith('/') else root
     else:
         if base_dir.endswith('/'):
             dir = base_dir
@@ -329,11 +326,7 @@ def __build_lxml(target, source, env):
     doc = etree.parse(str(source[0]))
     # Support for additional parameters
     parampass = {}
-    if parampass:
-        result = transform(doc, **parampass)
-    else:
-        result = transform(doc)
-
+    result = transform(doc, **parampass) if parampass else transform(doc)
     try:
         of = open(str(target[0]), "w")
         of.write(of.write(etree.tostring(result, pretty_print=True)))

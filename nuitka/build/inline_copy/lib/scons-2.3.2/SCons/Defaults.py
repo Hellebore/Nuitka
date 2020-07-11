@@ -110,7 +110,7 @@ def SharedObjectEmitter(target, source, env):
 
 def SharedFlagChecker(source, target, env):
     same = env.subst('$STATIC_AND_SHARED_OBJECTS_ARE_THE_SAME')
-    if same == '0' or same == '' or same == 'False':
+    if same in ['0', '', 'False']:
         for src in source:
             try:
                 shared = src.attributes.shared
@@ -160,9 +160,7 @@ ActionFactory = SCons.Action.ActionFactory
 def get_paths_str(dest):
     # If dest is a list, we need to manually call str() on each element
     if SCons.Util.is_List(dest):
-        elem_strs = []
-        for element in dest:
-            elem_strs.append('"' + str(element) + '"')
+        elem_strs = ['"' + str(element) + '"' for element in dest]
         return '[' + ', '.join(elem_strs) + ']'
     else:
         return '"' + str(dest) + '"'

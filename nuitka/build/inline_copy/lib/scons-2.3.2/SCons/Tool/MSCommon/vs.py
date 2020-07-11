@@ -98,11 +98,7 @@ class VisualStudio(object):
         """
 
 
-        if True:
-            vs_dir=self.find_vs_dir_by_reg()
-            return vs_dir
-        else:
-            return self.find_vs_dir_by_vc()
+        return self.find_vs_dir_by_reg()
 
     def find_executable(self):
         vs_dir = self.get_vs_dir()
@@ -514,7 +510,7 @@ def get_default_arch(env):
 
     if not msvs:
         arch = 'x86'
-    elif not arch in msvs.get_supported_arch():
+    elif arch not in msvs.get_supported_arch():
         fmt = "Visual Studio version %s does not support architecture %s"
         raise SCons.Errors.UserError(fmt % (env['MSVS_VERSION'], arch))
 
@@ -556,8 +552,7 @@ def query_versions():
     """Query the system to get available versions of VS. A version is
     considered when a batfile is found."""
     msvs_list = get_installed_visual_studios()
-    versions = [msvs.version for msvs in msvs_list]
-    return versions
+    return [msvs.version for msvs in msvs_list]
 
 # Local Variables:
 # tab-width:4

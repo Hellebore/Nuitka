@@ -269,10 +269,7 @@ def stringFunc(target, source, env):
         return env.subst_target_source(installstr, 0, target, source)
     target = str(target[0])
     source = str(source[0])
-    if os.path.isdir(source):
-        type = 'directory'
-    else:
-        type = 'file'
+    type = 'directory' if os.path.isdir(source) else 'file'
     return 'Install %s: "%s" as "%s"' % (type, source, target)
 
 #

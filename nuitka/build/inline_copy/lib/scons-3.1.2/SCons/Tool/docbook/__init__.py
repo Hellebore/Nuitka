@@ -144,10 +144,7 @@ def __create_output_dir(base_dir):
     root, tail = os.path.split(base_dir)
     dir = None
     if tail:
-        if base_dir.endswith('/'):
-            dir = base_dir
-        else:
-            dir = root
+        dir = base_dir if base_dir.endswith('/') else root
     else:
         if base_dir.endswith('/'):
             dir = base_dir
@@ -180,22 +177,23 @@ def __detect_cl_tool(env, chainkey, cdict, cpriority=None):
     Helper function, picks a command line tool from the list
     and initializes its environment variables.
     """
-    if env.get(chainkey,'') == '':
-        clpath = ''
+    if env.get(chainkey, '') != '':
+        return
+    clpath = ''
 
-        if cpriority is None:
-            cpriority = cdict.keys()
-        for cltool in cpriority:
+    if cpriority is None:
+        cpriority = cdict.keys()
+    for cltool in cpriority:
+        if __debug_tool_location:
+            print("DocBook: Looking for %s"%cltool)
+        clpath = env.WhereIs(cltool)
+        if clpath:
             if __debug_tool_location:
-                print("DocBook: Looking for %s"%cltool)
-            clpath = env.WhereIs(cltool)
-            if clpath:
-                if __debug_tool_location:
-                    print("DocBook: Found:%s"%cltool)
-                env[chainkey] = clpath
-                if not env[chainkey + 'COM']:
-                    env[chainkey + 'COM'] = cdict[cltool]
-                break
+                print("DocBook: Found:%s"%cltool)
+            env[chainkey] = clpath
+            if not env[chainkey + 'COM']:
+                env[chainkey + 'COM'] = cdict[cltool]
+            break
 
 def _detect(env):
     """
@@ -346,11 +344,7 @@ def __build_lxml(target, source, env):
     doc = etree.parse(str(source[0]))
     # Support for additional parameters
     parampass = {}
-    if parampass:
-        result = transform(doc, **parampass)
-    else:
-        result = transform(doc)
-
+    result = transform(doc, **parampass) if parampass else transform(doc)
     try:
         with open(str(target[0]), "wb") as of:
             of.write(etree.tostring(result, pretty_print=True))

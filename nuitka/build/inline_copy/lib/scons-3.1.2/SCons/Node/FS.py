@@ -242,10 +242,7 @@ if hasattr(os, 'link') and sys.platform != 'win32':
         # hard-link the final destination file.
         while fs.islink(src):
             link = fs.readlink(src)
-            if not os.path.isabs(link):
-                src = link
-            else:
-                src = os.path.join(os.path.dirname(src), link)
+            src = os.path.join(os.path.dirname(src), link) if os.path.isabs(link) else link
         fs.link(src, dst)
 else:
     _hardlink_func = None
@@ -285,10 +282,9 @@ def set_duplicate(duplicate):
         raise SCons.Errors.InternalError("The argument of set_duplicate "
                                            "should be in Valid_Duplicates")
     global Link_Funcs
-    Link_Funcs = []
-    for func in duplicate.split('-'):
-        if link_dict[func]:
-            Link_Funcs.append(link_dict[func])
+    Link_Funcs = [
+        link_dict[func] for func in duplicate.split('-') if link_dict[func]
+    ]
 
 def LinkFunc(target, source, env):
     """
@@ -392,10 +388,7 @@ class DiskChecker(object):
     def __call__(self, *args, **kw):
         return self.func(*args, **kw)
     def set(self, list):
-        if self.type in list:
-            self.func = self.do
-        else:
-            self.func = self.ignore
+        self.func = self.do if self.type in list else self.ignore
 
 def do_diskcheck_match(node, predicate, errorfmt):
     result = predicate()
@@ -1163,10 +1156,7 @@ class FS(LocalFS):
         self.max_drift = default_max_drift
 
         self.Top = None
-        if path is None:
-            self.pathTop = os.getcwd()
-        else:
-            self.pathTop = path
+        self.pathTop = os.getcwd() if path is None else path
         self.defaultDrive = _my_normcase(_my_splitdrive(self.pathTop)[0])
 
         self.Top = self.Dir(self.pathTop)
@@ -1276,10 +1266,7 @@ class FS(LocalFS):
             # structure similar to the one found on drive C:.
             if do_splitdrive:
                 drive, p = _my_splitdrive(p)
-                if drive:
-                    root = self.get_root(drive)
-                else:
-                    root = directory.root
+                root = self.get_root(drive) if drive else directory.root
             else:
                 root = directory.root
 
@@ -1331,11 +1318,7 @@ class FS(LocalFS):
                 else:
                     p = directory.get_labspath() + '/' + p
 
-                if drive:
-                    root = self.get_root(drive)
-                else:
-                    root = directory.root
-
+                root = self.get_root(drive) if drive else directory.root
         if needs_normpath is not None:
             # Normalize a pathname. Will return the same result for
             # equivalent paths.
@@ -1459,8 +1442,8 @@ class FS(LocalFS):
         message = None
         fmt = "building associated VariantDir targets: %s"
         start_dir = dir
-        while dir:
-            for bd in dir.variant_dirs:
+        while start_dir:
+            for bd in start_dir.variant_dirs:
                 if start_dir.is_under(bd):
                     # If already in the build-dir location, don't reflect
                     return [orig], fmt % str(orig)
@@ -1677,10 +1660,7 @@ class Dir(Base):
         while dir:
             for rep in dir.getRepositories():
                 result.append(rep.Dir(fname))
-            if fname == '.':
-                fname = dir.name
-            else:
-                fname = dir.name + OS_SEP + fname
+            fname = dir.name if fname == '.' else dir.name + OS_SEP + fname
             dir = dir.up()
 
         self._memo['get_all_rdirs'] = list(result)
@@ -1956,7 +1936,7 @@ class Dir(Base):
                 for entry in map(_my_normcase, entries):
                     d[entry] = True
             self.on_disk_entries = d
-        if sys.platform == 'win32' or sys.platform == 'cygwin':
+        if sys.platform in ['win32', 'cygwin']:
             name = _my_normcase(name)
             result = d.get(name)
             if result is None:
@@ -2590,12 +2570,13 @@ class FileBuildInfo(SCons.Node.BuildInfoBase):
             setattr(self, nattr, nodes)
 
     def format(self, names=0):
-        result = []
         bkids = self.bsources + self.bdepends + self.bimplicit
         bkidsigs = self.bsourcesigs + self.bdependsigs + self.bimplicitsigs
-        for bkid, bkidsig in zip(bkids, bkidsigs):
-            result.append(str(bkid) + ': ' +
-                          ' '.join(bkidsig.format(names=names)))
+        result = [
+            str(bkid) + ': ' + ' '.join(bkidsig.format(names=names))
+            for bkid, bkidsig in zip(bkids, bkidsigs)
+        ]
+
         if not hasattr(self,'bact'):
             self.bact = "none"
         result.append('%s [%s]' % (self.bactsig, self.bact))
@@ -2741,11 +2722,7 @@ class File(Base):
         except KeyError:
             pass
 
-        if self.rexists():
-            size = self.rfile().getsize()
-        else:
-            size = 0
-
+        size = self.rfile().getsize() if self.rexists() else 0
         self._memo['get_size'] = size
 
         return size
@@ -2757,11 +2734,7 @@ class File(Base):
         except KeyError:
             pass
 
-        if self.rexists():
-            timestamp = self.rfile().getmtime()
-        else:
-            timestamp = 0
-
+        timestamp = self.rfile().getmtime() if self.rexists() else 0
         self._memo['get_timestamp'] = timestamp
 
         return timestamp

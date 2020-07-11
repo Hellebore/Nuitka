@@ -189,7 +189,6 @@ def generateAssignmentSliceCode(statement, emit, context):
             context=context,
         )
 
-        context.setCurrentSourceCodeReference(old_source_ref)
     else:
         lower_name, upper_name = generateExpressionsCode(
             names=("sliceass_lower", "sliceass_upper"),
@@ -213,7 +212,8 @@ def generateAssignmentSliceCode(statement, emit, context):
             context=context,
         )
 
-        context.setCurrentSourceCodeReference(old_source_ref)
+
+    context.setCurrentSourceCodeReference(old_source_ref)
 
 
 def generateDelSliceCode(statement, emit, context):
@@ -248,7 +248,6 @@ def generateDelSliceCode(statement, emit, context):
             context=context,
         )
 
-        context.setCurrentSourceCodeReference(old_source_ref)
     else:
         lower_name, upper_name = generateExpressionsCode(
             names=("slicedel_lower", "slicedel_upper"),
@@ -271,7 +270,8 @@ def generateDelSliceCode(statement, emit, context):
             context=context,
         )
 
-        context.setCurrentSourceCodeReference(old_source_ref)
+
+    context.setCurrentSourceCodeReference(old_source_ref)
 
 
 def generateBuiltinSliceCode(to_name, expression, emit, context):

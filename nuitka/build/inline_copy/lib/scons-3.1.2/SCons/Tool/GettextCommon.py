@@ -262,8 +262,7 @@ def _translate(env, target=None, source=SCons.Environment._null, *args, **kw):
     """ Function for `Translate()` pseudo-builder """
     if target is None: target = []
     pot = env.POTUpdate(None, source, *args, **kw)
-    po = env.POUpdate(target, pot, *args, **kw)
-    return po
+    return env.POUpdate(target, pot, *args, **kw)
 
 
 #############################################################################
@@ -362,10 +361,7 @@ class RPaths(object):
 def _init_po_files(target, source, env):
     """ Action function for `POInit` builder. """
     nop = lambda target, source, env: 0
-    if 'POAUTOINIT' in env:
-        autoinit = env['POAUTOINIT']
-    else:
-        autoinit = False
+    autoinit = env['POAUTOINIT'] if 'POAUTOINIT' in env else False
     # Well, if everything outside works well, this loop should do single
     # iteration. Otherwise we are rebuilding all the targets even, if just
     # one has changed (but is this our fault?).
@@ -394,7 +390,6 @@ def _detect_xgettext(env):
     if xgettext:
         return xgettext
     raise SCons.Errors.StopError(XgettextNotFound, "Could not detect xgettext")
-    return None
 
 
 #############################################################################
@@ -413,7 +408,6 @@ def _detect_msginit(env):
     if msginit:
         return msginit
     raise SCons.Errors.StopError(MsginitNotFound, "Could not detect msginit")
-    return None
 
 
 #############################################################################
@@ -432,7 +426,6 @@ def _detect_msgmerge(env):
     if msgmerge:
         return msgmerge
     raise SCons.Errors.StopError(MsgmergeNotFound, "Could not detect msgmerge")
-    return None
 
 
 #############################################################################
@@ -451,7 +444,6 @@ def _detect_msgfmt(env):
     if msgfmt:
         return msgfmt
     raise SCons.Errors.StopError(MsgfmtNotFound, "Could not detect msgfmt")
-    return None
 
 
 #############################################################################

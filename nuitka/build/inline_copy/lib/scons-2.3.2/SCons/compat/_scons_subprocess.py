@@ -673,21 +673,20 @@ class Popen(object):
 
         # Optimization: If we are only using one pipe, or no pipe at
         # all, using select() or threads is unnecessary.
-        if [self.stdin, self.stdout, self.stderr].count(None) >= 2:
-            stdout = None
-            stderr = None
-            if self.stdin:
-                if input:
-                    self.stdin.write(input)
-                self.stdin.close()
-            elif self.stdout:
-                stdout = self.stdout.read()
-            elif self.stderr:
-                stderr = self.stderr.read()
-            self.wait()
-            return (stdout, stderr)
-
-        return self._communicate(input)
+        if [self.stdin, self.stdout, self.stderr].count(None) < 2:
+            return self._communicate(input)
+        stdout = None
+        stderr = None
+        if self.stdin:
+            if input:
+                self.stdin.write(input)
+            self.stdin.close()
+        elif self.stdout:
+            stdout = self.stdout.read()
+        elif self.stderr:
+            stderr = self.stderr.read()
+        self.wait()
+        return (stdout, stderr)
 
 
     if mswindows:
@@ -860,9 +859,11 @@ class Popen(object):
         def poll(self, _deadstate=None):
             """Check if child process has terminated.  Returns returncode
             attribute."""
-            if self.returncode is None:
-                if WaitForSingleObject(self._handle, 0) == WAIT_OBJECT_0:
-                    self.returncode = GetExitCodeProcess(self._handle)
+            if (
+                self.returncode is None
+                and WaitForSingleObject(self._handle, 0) == WAIT_OBJECT_0
+            ):
+                self.returncode = GetExitCodeProcess(self._handle)
             return self.returncode
 
 
@@ -1171,7 +1172,7 @@ class Popen(object):
                     # blocking.  POSIX defines PIPE_BUF >= 512
                     m = memoryview(input)[input_offset:input_offset+512]
                     bytes_written = os.write(self.stdin.fileno(), m)
-                    input_offset = input_offset + bytes_written
+                    input_offset += bytes_written
                     if input_offset >= len(input):
                         self.stdin.close()
                         write_set.remove(self.stdin)

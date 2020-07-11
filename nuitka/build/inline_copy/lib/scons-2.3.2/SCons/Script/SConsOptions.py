@@ -192,7 +192,7 @@ class SConsOption(optparse.Option):
             if self.nargs in (1, '?'):
                 return self.check_value(opt, value)
             else:
-                return tuple([self.check_value(opt, v) for v in value])
+                return tuple(self.check_value(opt, v) for v in value)
 
     def process(self, opt, value, values, parser):
 
@@ -313,10 +313,7 @@ class SConsOptionParser(optparse.OptionParser):
         if option.takes_value():
             nargs = option.nargs
             if nargs == '?':
-                if had_explicit_value:
-                    value = rargs.pop(0)
-                else:
-                    value = option.const
+                value = rargs.pop(0) if had_explicit_value else option.const
             elif len(rargs) < nargs:
                 if nargs == 1:
                     self.error(_("%s option requires an argument") % opt)
@@ -388,7 +385,7 @@ class SConsOptionParser(optparse.OptionParser):
                         # Not known yet, so reject for now
                         largs_restore.append('='.join(lopt))
                 else:
-                    if l == "--" or l == "-":
+                    if l in ["--", "-"]:
                         # Stop normal processing and don't
                         # process the rest of the command-line opts
                         largs_restore.append(l)
@@ -535,21 +532,20 @@ class SConsIndentedHelpFormatter(optparse.IndentedHelpFormatter):
         """Return a comma-separated list of option strings & metavariables."""
         if option.takes_value():
             metavar = option.metavar or option.dest.upper()
-            short_opts = []
-            for sopt in option._short_opts:
-                short_opts.append(self._short_opt_fmt % (sopt, metavar))
-            long_opts = []
-            for lopt in option._long_opts:
-                long_opts.append(self._long_opt_fmt % (lopt, metavar))
+            short_opts = [
+                self._short_opt_fmt % (sopt, metavar)
+                for sopt in option._short_opts
+            ]
+
+            long_opts = [
+                self._long_opt_fmt % (lopt, metavar) for lopt in option._long_opts
+            ]
+
         else:
             short_opts = option._short_opts
             long_opts = option._long_opts
 
-        if self.short_first:
-            opts = short_opts + long_opts
-        else:
-            opts = long_opts + short_opts
-
+        opts = short_opts + long_opts if self.short_first else long_opts + short_opts
         return ", ".join(opts)
 
 def Parser(version):
@@ -646,7 +642,7 @@ def Parser(version):
     config_options = ["auto", "force" ,"cache"]
 
     def opt_config(option, opt, value, parser, c_options=config_options):
-        if not value in c_options:
+        if value not in c_options:
             raise OptionValueError(opt_invalid('config', value, c_options))
         setattr(parser.values, option.dest, value)
 
@@ -721,7 +717,7 @@ def Parser(version):
                   metavar="TYPE")
 
     def opt_duplicate(option, opt, value, parser):
-        if not value in SCons.Node.FS.Valid_Duplicates:
+        if value not in SCons.Node.FS.Valid_Duplicates:
             raise OptionValueError(opt_invalid('duplication', value,
                                               SCons.Node.FS.Valid_Duplicates))
         setattr(parser.values, option.dest, value)

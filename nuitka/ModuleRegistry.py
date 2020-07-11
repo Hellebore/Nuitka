@@ -53,11 +53,7 @@ def getRootModules():
 
 
 def hasRootModule(module_name):
-    for module in root_modules:
-        if module.getFullName() == module_name:
-            return True
-
-    return False
+    return any(module.getFullName() == module_name for module in root_modules)
 
 
 def replaceRootModule(old, new):
@@ -112,12 +108,11 @@ def _normalizeModuleFilename(filename):
 
 def getUncompiledModule(module_name, module_filename):
     for uncompiled_module in uncompiled_modules:
-        if module_name == uncompiled_module.getFullName():
-            if areSamePaths(
-                _normalizeModuleFilename(module_filename),
-                _normalizeModuleFilename(uncompiled_module.filename),
-            ):
-                return uncompiled_module
+        if module_name == uncompiled_module.getFullName() and areSamePaths(
+            _normalizeModuleFilename(module_filename),
+            _normalizeModuleFilename(uncompiled_module.filename),
+        ):
+            return uncompiled_module
 
     return None
 

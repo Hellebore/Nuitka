@@ -95,15 +95,12 @@ def addPathIfNotExists(env_dict, key, path, sep=os.pathsep):
     try:
         is_list = 1
         paths = env_dict[key]
-        if not SCons.Util.is_List(env_dict[key]):
+        if not SCons.Util.is_List(paths):
             paths = paths.split(sep)
             is_list = 0
         if os.path.normcase(path) not in list(map(os.path.normcase, paths)):
             paths = [ path ] + paths
-        if is_list:
-            env_dict[key] = paths
-        else:
-            env_dict[key] = sep.join(paths)
+        env_dict[key] = paths if is_list else sep.join(paths)
     except KeyError:
         env_dict[key] = path
 

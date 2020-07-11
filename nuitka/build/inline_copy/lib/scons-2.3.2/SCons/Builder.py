@@ -121,7 +121,7 @@ def match_splitext(path, suffixes = []):
     if suffixes:
         matchsuf = [S for S in suffixes if path[-len(S):] == S]
         if matchsuf:
-            suf = max([(len(_f),_f) for _f in matchsuf])[1]
+            suf = max((len(_f),_f) for _f in matchsuf)[1]
             return [path[:-len(suf)], path[-len(suf):]]
     return SCons.Util.splitext(path)
 
@@ -275,7 +275,7 @@ def Builder(**kw):
 
     result = BuilderBase(**kw)
 
-    if not composite is None:
+    if composite is not None:
         result = CompositeBuilder(result, composite)
 
     return result
@@ -292,7 +292,7 @@ def _node_errors(builder, env, tlist, slist):
         if t.side_effect:
             raise UserError("Multiple ways to build the same target were specified for: %s" % t)
         if t.has_explicit_builder():
-            if not t.env is None and not t.env is env:
+            if t.env is not None and t.env is not env:
                 action = t.builder.action
                 t_contents = action.get_contents(tlist, slist, t.env)
                 contents = action.get_contents(tlist, slist, env)
@@ -315,9 +315,8 @@ def _node_errors(builder, env, tlist, slist):
                 msg = "Multiple ways to build the same target were specified for: %s  (from %s and from %s)" % (t, list(map(str, t.sources)), list(map(str, slist)))
                 raise UserError(msg)
 
-    if builder.single_source:
-        if len(slist) > 1:
-            raise UserError("More than one source given for single-source builder: targets=%s sources=%s" % (list(map(str,tlist)), list(map(str,slist))))
+    if builder.single_source and len(slist) > 1:
+        raise UserError("More than one source given for single-source builder: targets=%s sources=%s" % (list(map(str,tlist)), list(map(str,slist))))
 
 class EmitterProxy(object):
     """This is a callable class that can act as a
@@ -417,7 +416,7 @@ class BuilderBase(object):
         if name:
             self.name = name
         self.executor_kw = {}
-        if not chdir is _null:
+        if chdir is not _null:
             self.executor_kw['chdir'] = chdir
         self.is_explicit = is_explicit
 
@@ -453,10 +452,7 @@ class BuilderBase(object):
     def splitext(self, path, env=None):
         if not env:
             env = self.env
-        if env:
-            suffixes = self.src_suffixes(env)
-        else:
-            suffixes = []
+        suffixes = self.src_suffixes(env) if env else []
         return match_splitext(path, suffixes)
 
     def _adjustixes(self, files, pre, suf, ensure_suffix=False):
@@ -633,7 +629,7 @@ class BuilderBase(object):
         return self._execute(env, target, source, OverrideWarner(kw), ekw)
 
     def adjust_suffix(self, suff):
-        if suff and not suff[0] in [ '.', '_', '$' ]:
+        if suff and suff[0] not in ['.', '_', '$']:
             return '.' + suff
         return suff
 

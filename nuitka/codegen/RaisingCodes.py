@@ -197,8 +197,7 @@ def generateRaiseExpressionCode(to_name, expression, emit, context):
             parent.isExpressionSideEffects()
             or parent.isExpressionConditional()
             or parent.isExpressionLocalsVariableRefOrFallback()
-        ), (expression, expression.parent, expression.asXmlText())
-
+        ), (expression, parent, expression.asXmlText())
     with withObjectCodeTemporaryAssignment(
         to_name, "raise_exception_result", expression, emit, context
     ) as value_name:

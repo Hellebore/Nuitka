@@ -64,9 +64,7 @@ def generate(env):
         env['SHCXXFLAGS'] = SCons.Util.CLVar('$CXXFLAGS -mminimal-toc')
         env['STATIC_AND_SHARED_OBJECTS_ARE_THE_SAME'] = 1
         env['SHOBJSUFFIX'] = '$OBJSUFFIX'
-    elif env['PLATFORM'] == 'hpux':
-        env['SHOBJSUFFIX'] = '.pic.o'
-    elif env['PLATFORM'] == 'sunos':
+    elif env['PLATFORM'] in ['hpux', 'sunos']:
         env['SHOBJSUFFIX'] = '.pic.o'
     elif env['PLATFORM'] == 'win32':
         # Ensure that we have a proper path for clang++
@@ -83,7 +81,7 @@ def generate(env):
                                      stdout=subprocess.PIPE)
         if pipe.wait() != 0: 
             return
-        
+
         # clang -dumpversion is of no use
         with pipe.stdout:
             line = pipe.stdout.readline()

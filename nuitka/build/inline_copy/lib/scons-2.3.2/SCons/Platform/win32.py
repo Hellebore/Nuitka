@@ -257,8 +257,6 @@ def get_program_files_dir():
             val, tok = SCons.Util.RegQueryValueEx(k, 'ProgramFilesDir')
         except SCons.Util.RegError:
             val = ''
-            pass
-
     if val == '':
         # A reasonable default if we can't read the registry
         # (Actually, it's pretty reasonable even if we can :-)
@@ -350,13 +348,13 @@ def generate(env):
         if 'PATHEXT' in os.environ:
             tmp_pathext = os.environ['PATHEXT']
         cmd_interp = SCons.Util.WhereIs('cmd', tmp_path, tmp_pathext)
-        if not cmd_interp:
-            cmd_interp = SCons.Util.WhereIs('command', tmp_path, tmp_pathext)
+    if not cmd_interp:
+        cmd_interp = SCons.Util.WhereIs('command', tmp_path, tmp_pathext)
 
     if not cmd_interp:
         cmd_interp = env.Detect('cmd')
-        if not cmd_interp:
-            cmd_interp = env.Detect('command')
+    if not cmd_interp:
+        cmd_interp = env.Detect('command')
 
 
     if 'ENV' not in env:

@@ -207,10 +207,7 @@ class BaseSet(object):
         """
         if not isinstance(other, BaseSet):
             other = Set(other)
-        if len(self) <= len(other):
-            little, big = self, other
-        else:
-            little, big = other, self
+        little, big = (self, other) if len(self) <= len(other) else (other, self)
         common = iter(filter(big._data.has_key, little))
         return self.__class__(common)
 
@@ -289,7 +286,7 @@ class BaseSet(object):
         self._binary_sanity_check(other)
         if len(self) > len(other):  # Fast check for obvious cases
             return False
-        for elt in filterfalse(other._data.has_key, self):
+        for _ in filterfalse(other._data.has_key, self):
             return False
         return True
 
@@ -298,7 +295,7 @@ class BaseSet(object):
         self._binary_sanity_check(other)
         if len(self) < len(other):  # Fast check for obvious cases
             return False
-        for elt in filterfalse(self._data.has_key, other):
+        for _ in filterfalse(self._data.has_key, other):
             return False
         return True
 

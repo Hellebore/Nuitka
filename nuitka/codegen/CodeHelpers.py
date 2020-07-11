@@ -296,6 +296,4 @@ def pickCodeHelper(
     if source_ref is not None and ideal_helper not in nonhelpers:
         onMissingHelper(ideal_helper, source_ref)
 
-    fallback_helper = "%s_%s_%s%s" % (prefix, "OBJECT", "OBJECT", suffix)
-
-    return fallback_helper
+    return "%s_%s_%s%s" % (prefix, "OBJECT", "OBJECT", suffix)

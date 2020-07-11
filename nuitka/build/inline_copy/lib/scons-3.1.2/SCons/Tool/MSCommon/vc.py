@@ -257,7 +257,7 @@ def msvc_version_to_maj_min(msvc_version):
     msvc_version_numeric = get_msvc_version_numeric(msvc_version)
 
     t = msvc_version_numeric.split(".")
-    if not len(t) == 2:
+    if len(t) != 2:
         raise ValueError("Unrecognized version %s (%s)" % (msvc_version,msvc_version_numeric))
     try:
         maj = int(t[0])
@@ -509,7 +509,7 @@ def _check_cl_exists_in_vc_dir(env, vc_dir, msvc_version):
             debug('_check_cl_exists_in_vc_dir(): found ' + _CL_EXE_NAME + '!')
             return True
 
-    elif ver_num <= 14 and ver_num >= 8:
+    elif ver_num >= 8:
 
         # Set default value to be -1 as "" which is the value for x86/x86 yields true when tested
         # if not host_trgt_dir
@@ -541,7 +541,7 @@ def _check_cl_exists_in_vc_dir(env, vc_dir, msvc_version):
             debug('_check_cl_exists_in_vc_dir(): found ' + _CL_EXE_NAME + '!')
             return True
 
-    elif ver_num < 8 and ver_num >= 6:
+    elif ver_num >= 6:
         # not sure about these versions so if a walk the VC dir (could be slow)
         for root, _, files in os.walk(vc_dir):
             if _CL_EXE_NAME in files:
@@ -657,19 +657,19 @@ def get_default_version(env):
 
     debug('get_default_version(): msvc_version:%s msvs_version:%s'%(msvc_version,msvs_version))
 
-    if msvs_version and not msvc_version:
-        SCons.Warnings.warn(
-                SCons.Warnings.DeprecatedWarning,
-                "MSVS_VERSION is deprecated: please use MSVC_VERSION instead ")
-        return msvs_version
-    elif msvc_version and msvs_version:
-        if not msvc_version == msvs_version:
+    if msvs_version:
+        if not msvc_version:
             SCons.Warnings.warn(
-                    SCons.Warnings.VisualVersionMismatch,
-                    "Requested msvc version (%s) and msvs version (%s) do " \
-                    "not match: please use MSVC_VERSION only to request a " \
-                    "visual studio version, MSVS_VERSION is deprecated" \
-                    % (msvc_version, msvs_version))
+                    SCons.Warnings.DeprecatedWarning,
+                    "MSVS_VERSION is deprecated: please use MSVC_VERSION instead ")
+        else:
+            if msvc_version != msvs_version:
+                SCons.Warnings.warn(
+                        SCons.Warnings.VisualVersionMismatch,
+                        "Requested msvc version (%s) and msvs version (%s) do " \
+                        "not match: please use MSVC_VERSION only to request a " \
+                        "visual studio version, MSVS_VERSION is deprecated" \
+                        % (msvc_version, msvs_version))
         return msvs_version
     if not msvc_version:
         installed_vcs = cached_get_installed_vcs(env)
@@ -735,10 +735,9 @@ def msvc_find_valid_batch_script(env, version):
         # Get just version numbers
         maj, min = msvc_version_to_maj_min(version)
         # VS2015+
-        if maj >= 14:
-            if env.get('MSVC_UWP_APP') == '1':
-                # Initialize environment variables with store/universal paths
-                arg += ' store'
+        if maj >= 14 and env.get('MSVC_UWP_APP') == '1':
+            # Initialize environment variables with store/universal paths
+            arg += ' store'
 
         # Try to locate a batch file for this host/target platform combo
         try:
@@ -765,17 +764,18 @@ def msvc_find_valid_batch_script(env, version):
                 debug('msvc_find_valid_batch_script() use_script 3: failed running VC script %s: %s: Error:%s'%(repr(vc_script),arg,e))
                 vc_script=None
                 continue
-        if not vc_script and sdk_script:
-            debug('msvc_find_valid_batch_script() use_script 4: trying sdk script: %s'%(sdk_script))
-            try:
-                d = script_env(sdk_script)
-                found = sdk_script
-            except BatchFileExecutionError as e:
-                debug('msvc_find_valid_batch_script() use_script 5: failed running SDK script %s: Error:%s'%(repr(sdk_script),e))
+        if not vc_script:
+            if sdk_script:
+                debug('msvc_find_valid_batch_script() use_script 4: trying sdk script: %s'%(sdk_script))
+                try:
+                    d = script_env(sdk_script)
+                    found = sdk_script
+                except BatchFileExecutionError as e:
+                    debug('msvc_find_valid_batch_script() use_script 5: failed running SDK script %s: Error:%s'%(repr(sdk_script),e))
+                    continue
+            else:
+                debug('msvc_find_valid_batch_script() use_script 6: Neither VC script nor SDK script found')
                 continue
-        elif not vc_script and not sdk_script:
-            debug('msvc_find_valid_batch_script() use_script 6: Neither VC script nor SDK script found')
-            continue
 
         debug("msvc_find_valid_batch_script() Found a working script/target: %s/%s"%(repr(found),arg))
         break # We've found a working target_platform, so stop looking

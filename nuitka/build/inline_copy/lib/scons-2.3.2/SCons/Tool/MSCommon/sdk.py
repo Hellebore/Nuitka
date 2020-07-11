@@ -386,8 +386,8 @@ def mssdk_setup_env(env):
         mssdk = get_sdk_by_version(sdk_version)
         if not mssdk:
             mssdk = get_default_sdk()
-            if not mssdk:
-                return
+        if not mssdk:
+            return
         sdk_dir = mssdk.get_sdk_dir()
         debug('sdk.py:mssdk_setup_env: Using MSVS_VERSION:%s'%sdk_dir)
     else:

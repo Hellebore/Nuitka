@@ -169,20 +169,20 @@ class _POFileBuilder(BuilderBase):
   #  After that it calls emitter (which is quite too late). The emitter is
   #  also called in each iteration, what makes things yet worse.
   def __init__(self, env, **kw):
-    if not 'suffix' in kw:
-       kw['suffix'] = '$POSUFFIX'
-    if not 'src_suffix' in kw:
-       kw['src_suffix'] = '$POTSUFFIX'
-    if not 'src_builder' in kw:
-       kw['src_builder'] = '_POTUpdateBuilder'
-    if not 'single_source' in kw:
-       kw['single_source'] = True
+    if 'suffix' not in kw:
+      kw['suffix'] = '$POSUFFIX'
+    if 'src_suffix' not in kw:
+      kw['src_suffix'] = '$POTSUFFIX'
+    if 'src_builder' not in kw:
+      kw['src_builder'] = '_POTUpdateBuilder'
+    if 'single_source' not in kw:
+      kw['single_source'] = True
     alias = None
     if 'target_alias' in kw:
        alias = kw['target_alias']
        del kw['target_alias']
-    if not 'target_factory' in kw:
-       kw['target_factory'] = _POTargetFactory(env, alias=alias).File
+    if 'target_factory' not in kw:
+      kw['target_factory'] = _POTargetFactory(env, alias=alias).File
     BuilderBase.__init__(self, **kw)
 
   def _execute(self, env, target, source, *args, **kw):
@@ -229,8 +229,7 @@ def _translate(env, target=None, source=SCons.Environment._null, *args, **kw):
   """ Function for `Translate()` pseudo-builder """
   if target is None: target = []
   pot = env.POTUpdate(None, source, *args, **kw)
-  po = env.POUpdate(target, pot, *args, **kw)
-  return po
+  return env.POUpdate(target, pot, *args, **kw)
 #############################################################################
 
 #############################################################################
@@ -341,10 +340,7 @@ class RPaths(object):
 def _init_po_files(target, source, env):
   """ Action function for `POInit` builder. """
   nop = lambda target, source, env : 0
-  if env.has_key('POAUTOINIT'):
-    autoinit = env['POAUTOINIT']
-  else:
-    autoinit = False
+  autoinit = env['POAUTOINIT'] if env.has_key('POAUTOINIT') else False
   # Well, if everything outside works well, this loop should do single
   # iteration. Otherwise we are rebuilding all the targets even, if just
   # one has changed (but is this out fault?).
@@ -371,7 +367,6 @@ def _detect_xgettext(env):
   if xgettext:
     return xgettext
   raise SCons.Errors.StopError(XgettextNotFound,"Could not detect xgettext")
-  return None
 #############################################################################
 def _xgettext_exists(env):
   return _detect_xgettext(env)
@@ -386,7 +381,6 @@ def _detect_msginit(env):
   if msginit:
     return msginit
   raise SCons.Errors.StopError(MsginitNotFound, "Could not detect msginit")
-  return None
 #############################################################################
 def _msginit_exists(env):
   return  _detect_msginit(env)
@@ -401,7 +395,6 @@ def _detect_msgmerge(env):
   if msgmerge:
     return msgmerge
   raise SCons.Errors.StopError(MsgmergeNotFound, "Could not detect msgmerge")
-  return None
 #############################################################################
 def _msgmerge_exists(env):
   return  _detect_msgmerge(env)
@@ -416,7 +409,6 @@ def _detect_msgfmt(env):
   if msgfmt:
     return msgfmt
   raise SCons.Errors.StopError(MsgfmtNotFound, "Could not detect msgfmt")
-  return None
 #############################################################################
 def _msgfmt_exists(env):
   return _detect_msgfmt(env)

@@ -91,9 +91,7 @@ class TempMixin(object):
             result = self.variable_storage.getVariableDeclarationTop(formatted_name)
 
             if result is None:
-                if base_name == "outline_return_value":
-                    init_value = "NULL"
-                elif base_name == "return_value":
+                if base_name in ["outline_return_value", "return_value"]:
                     init_value = "NULL"
                 elif base_name == "generator_return":
                     init_value = "false"
@@ -180,11 +178,7 @@ class TempMixin(object):
         # use, the NULL init is needed.
         debug = Options.isDebug() and python_version >= 300
 
-        if debug:
-            keeper_obj_init = "NULL"
-        else:
-            keeper_obj_init = None
-
+        keeper_obj_init = "NULL" if debug else None
         return (
             self.variable_storage.addVariableDeclarationTop(
                 "PyObject *",
@@ -223,11 +217,7 @@ class TempMixin(object):
 
             debug = Options.isDebug() and python_version >= 300
 
-            if debug:
-                preserver_obj_init = "NULL"
-            else:
-                preserver_obj_init = None
-
+            preserver_obj_init = "NULL" if debug else None
             self.preserver_variable_declaration[preserver_id] = (
                 self.variable_storage.addVariableDeclarationTop(
                     "PyObject *",
@@ -374,9 +364,8 @@ class PythonContextBase(getMetaClassBase("Context")):
         return result
 
     def getLastSourceCodeReference(self):
-        result = self.last_source_ref
         # self.last_source_ref = None
-        return result
+        return self.last_source_ref
 
     def getInplaceLeftName(self):
         return self.allocateTempName("inplace_orig", "PyObject *", True)
@@ -749,39 +738,14 @@ class PythonGlobalContext(object):
         elif type(constant) is type:
             # TODO: Maybe make this a mapping in nuitka.Builtins
 
-            if constant is None:
-                key = "(PyObject *)Py_TYPE(Py_None)"
-            elif constant is object:
-                key = "(PyObject *)&PyBaseObject_Type"
-            elif constant is staticmethod:
-                key = "(PyObject *)&PyStaticMethod_Type"
-            elif constant is classmethod:
-                key = "(PyObject *)&PyClassMethod_Type"
-            elif constant is bytearray:
-                key = "(PyObject *)&PyByteArray_Type"
-            elif constant is enumerate:
-                key = "(PyObject *)&PyEnum_Type"
-            elif constant is frozenset:
-                key = "(PyObject *)&PyFrozenSet_Type"
-            elif python_version >= 270 and constant is memoryview:
-                key = "(PyObject *)&PyMemoryView_Type"
-            elif python_version < 300 and constant is basestring:
-                key = "(PyObject *)&PyBaseString_Type"
-            elif python_version < 300 and constant is xrange:
-                key = "(PyObject *)&PyRange_Type"
-            elif constant in builtin_anon_values:
-                key = "(PyObject *)" + builtin_anon_codes[builtin_anon_values[constant]]
-            elif constant in builtin_exception_values_list:
-                key = "(PyObject *)PyExc_%s" % constant.__name__
-            else:
-                type_name = constant.__name__
+            type_name = constant.__name__
 
-                if constant is int and python_version >= 300:
-                    type_name = "long"
-                elif constant is str:
-                    type_name = "string" if python_version < 300 else "unicode"
+            if constant is int and python_version >= 300:
+                type_name = "long"
+            elif constant is str:
+                type_name = "string" if python_version < 300 else "unicode"
 
-                key = "(PyObject *)&Py%s_Type" % type_name.title()
+            key = "(PyObject *)&Py%s_Type" % type_name.title()
         else:
             key = "const_" + namifyConstant(constant)
 

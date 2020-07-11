@@ -67,7 +67,7 @@ def _validator(key, val, env):
 
     This is usable as 'validator' for SCons' Variables.
     """
-    if not env[key] in (True, False):
+    if env[key] not in (True, False):
         raise SCons.Errors.UserError(
             'Invalid value for boolean option %s: %s' % (key, env[key]))
 

@@ -76,11 +76,8 @@ def linux_ver_normalize(vstr):
         return float(vmaj) * 10. + float(vmin) + float(build) / 1000.
     else:
         f = float(vstr)
-        if is_windows:
-            return f
-        else:
-            if f < 60: return f * 10.0
-            else: return f
+        if not is_windows and f < 60: return f * 10.0
+        else: return f
 
 def check_abi(abi):
     """Check for valid ABI (application binary interface) name,
@@ -403,11 +400,8 @@ def generate(env, version=None, abi=None, topdir=None, verbose=0):
 
     if is_windows:
         SCons.Tool.msvc.generate(env)
-    elif is_linux:
+    else:
         SCons.Tool.gcc.generate(env)
-    elif is_mac:
-        SCons.Tool.gcc.generate(env)
-
     # if version is unspecified, use latest
     vlist = get_all_compiler_versions()
     if not version:
@@ -429,16 +423,9 @@ def generate(env, version=None, abi=None, topdir=None, verbose=0):
         if is_mac or is_linux:
             # Check if we are on 64-bit linux, default to 64 then.
             uname_m = os.uname()[4]
-            if uname_m == 'x86_64':
-                abi = 'x86_64'
-            else:
-                abi = 'ia32'
+            abi = 'x86_64' if uname_m == 'x86_64' else 'ia32'
         else:
-            if is_win64:
-                abi = 'em64t'
-            else:
-                abi = 'ia32'
-
+            abi = 'em64t' if is_win64 else 'ia32'
     if version and not topdir:
         try:
             topdir = get_intel_compiler_top(version, abi)
@@ -557,8 +544,6 @@ def generate(env, version=None, abi=None, topdir=None, verbose=0):
             reglicdir = SCons.Util.RegQueryValueEx(k, "w_cpp")[0]
         except (AttributeError, SCons.Util.RegError):
             reglicdir = ""
-        defaultlicdir = r'C:\Program Files\Common Files\Intel\Licenses'
-
         licdir = None
         for ld in [envlicdir, reglicdir]:
             # If the string contains an '@', then assume it's a network
@@ -567,16 +552,22 @@ def generate(env, version=None, abi=None, topdir=None, verbose=0):
                 licdir = ld
                 break
         if not licdir:
+            defaultlicdir = r'C:\Program Files\Common Files\Intel\Licenses'
+
             licdir = defaultlicdir
             if not os.path.exists(licdir):
+
                 class ICLLicenseDirWarning(SCons.Warnings.Warning):
                     pass
                 SCons.Warnings.enableWarningClass(ICLLicenseDirWarning)
-                SCons.Warnings.warn(ICLLicenseDirWarning,
-                                    "Intel license dir was not found."
-                                    "  Tried using the INTEL_LICENSE_FILE environment variable (%s), the registry (%s) and the default path (%s)."
-                                    "  Using the default path as a last resort."
-                                        % (envlicdir, reglicdir, defaultlicdir))
+                SCons.Warnings.warn(
+                    ICLLicenseDirWarning,
+                    "Intel license dir was not found."
+                    "  Tried using the INTEL_LICENSE_FILE environment variable (%s), the registry (%s) and the default path (%s)."
+                    "  Using the default path as a last resort."
+                    % (envlicdir, reglicdir, licdir),
+                )
+
         env['ENV']['INTEL_LICENSE_FILE'] = licdir
 
 def exists(env):
@@ -593,9 +584,7 @@ def exists(env):
         # try env.Detect, maybe that will work
         if is_windows:
             return env.Detect('icl')
-        elif is_linux:
-            return env.Detect('icc')
-        elif is_mac:
+        else:
             return env.Detect('icc')
     return detected
 

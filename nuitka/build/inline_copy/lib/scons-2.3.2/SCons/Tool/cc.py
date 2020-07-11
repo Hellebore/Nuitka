@@ -54,7 +54,7 @@ def add_common_cc_variables(env):
         env['FRAMEWORKS'] = SCons.Util.CLVar('')
         env['FRAMEWORKPATH'] = SCons.Util.CLVar('')
         if env['PLATFORM'] == 'darwin':
-            env['_CCCOMCOM'] = env['_CCCOMCOM'] + ' $_FRAMEWORKPATH'
+            env['_CCCOMCOM'] += ' $_FRAMEWORKPATH'
 
     if 'CCFLAGS' not in env:
         env['CCFLAGS']   = SCons.Util.CLVar('')

@@ -383,9 +383,7 @@ class SubstitutionEnvironment(object):
     def _init_special(self):
         """Initial the dispatch tables for special handling of
         special construction variables."""
-        self._special_del = {}
-        self._special_del['SCANNERS'] = _del_SCANNERS
-
+        self._special_del = {'SCANNERS': _del_SCANNERS}
         self._special_set = {}
         for key in reserved_construction_var_names:
             self._special_set[key] = _set_reserved
@@ -611,7 +609,9 @@ class SubstitutionEnvironment(object):
         Removes the specified function's MethodWrapper from the
         added_methods list, so we don't re-bind it when making a clone.
         """
-        self.added_methods = [dm for dm in self.added_methods if not dm.method is function]
+        self.added_methods = [
+            dm for dm in self.added_methods if dm.method is not function
+        ]
 
     def Override(self, overrides):
         """
@@ -825,7 +825,7 @@ class SubstitutionEnvironment(object):
             else:
                 if not orig:
                     orig = value
-                elif value:
+                else:
                     # Add orig and value.  The logic here was lifted from
                     # part of env.Append() (see there for a lot of comments
                     # about the order in which things are tried) and is
@@ -956,8 +956,8 @@ class Base(SubstitutionEnvironment):
 
         if platform is None:
             platform = self._dict.get('PLATFORM', None)
-            if platform is None:
-                platform = SCons.Platform.Platform()
+        if platform is None:
+            platform = SCons.Platform.Platform()
         if SCons.Util.is_String(platform):
             platform = SCons.Platform.Platform(platform)
         self._dict['PLATFORM'] = str(platform)
@@ -982,7 +982,7 @@ class Base(SubstitutionEnvironment):
         self.Replace(**kw)
         keys = list(kw.keys())
         if variables:
-            keys = keys + list(variables.keys())
+            keys += list(variables.keys())
             variables.Update(self)
 
         save = {}
@@ -998,8 +998,8 @@ class Base(SubstitutionEnvironment):
 
         if tools is None:
             tools = self._dict.get('TOOLS', None)
-            if tools is None:
-                tools = ['default']
+        if tools is None:
+            tools = ['default']
         apply_tools(self, tools, toolpath)
 
         # Now restore the passed-in and customized variables
@@ -1333,10 +1333,9 @@ class Base(SubstitutionEnvironment):
                             val = [(val,)]
                         if delete_existing:
                             dk = filter(lambda x, val=val: x not in val, dk)
-                            self._dict[key] = dk + val
                         else:
                             dk = [x for x in dk if x not in val]
-                            self._dict[key] = dk + val
+                        self._dict[key] = dk + val
                     else:
                         # By elimination, val is not a list.  Since dk is a
                         # list, wrap val in a list first.
@@ -1344,7 +1343,7 @@ class Base(SubstitutionEnvironment):
                             dk = filter(lambda x, val=val: x not in val, dk)
                             self._dict[key] = dk + [val]
                         else:
-                            if not val in dk:
+                            if val not in dk:
                                 self._dict[key] = dk + [val]
                 else:
                     if key == 'CPPDEFINES':
@@ -1353,10 +1352,7 @@ class Base(SubstitutionEnvironment):
                         elif SCons.Util.is_Dict(dk):
                             dk = dk.items()
                         if SCons.Util.is_String(val):
-                            if val in dk:
-                                val = []
-                            else:
-                                val = [val]
+                            val = [] if val in dk else [val]
                         elif SCons.Util.is_Dict(val):
                             tmp = []
                             for i,j in val.iteritems():
@@ -1511,10 +1507,7 @@ class Base(SubstitutionEnvironment):
         """
         import pprint
         pp = pprint.PrettyPrinter(indent=2)
-        if key:
-            dict = self.Dictionary(key)
-        else:
-            dict = self.Dictionary()
+        dict = self.Dictionary(key) if key else self.Dictionary()
         return pp.pformat(dict)
 
     def FindIxes(self, paths, prefix, suffix):
@@ -1720,7 +1713,7 @@ class Base(SubstitutionEnvironment):
                         dk = [x for x in dk if x not in val]
                         self._dict[key] = [val] + dk
                     else:
-                        if not val in dk:
+                        if val not in dk:
                             self._dict[key] = [val] + dk
                 else:
                     if delete_existing:
@@ -1831,7 +1824,7 @@ class Base(SubstitutionEnvironment):
         uniq = {}
         for executor in [n.get_executor() for n in nodes]:
             uniq[executor] = 1
-        for executor in uniq.keys():
+        for executor in uniq:
             executor.add_pre_action(action)
         return nodes
 
@@ -1841,7 +1834,7 @@ class Base(SubstitutionEnvironment):
         uniq = {}
         for executor in [n.get_executor() for n in nodes]:
             uniq[executor] = 1
-        for executor in uniq.keys():
+        for executor in uniq:
             executor.add_post_action(action)
         return nodes
 
@@ -1937,7 +1930,7 @@ class Base(SubstitutionEnvironment):
     def Configure(self, *args, **kw):
         nargs = [self]
         if args:
-            nargs = nargs + self.subst_list(args)[0]
+            nargs += self.subst_list(args)[0]
         nkw = self.subst_kw(kw)
         nkw['_depth'] = kw.get('_depth', 0) + 1
         try:

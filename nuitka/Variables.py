@@ -121,12 +121,13 @@ class Variable(object):
 
             # These are not really scopes, just shared uses.
             if (
-                user.isExpressionGeneratorObjectBody()
-                or user.isExpressionCoroutineObjectBody()
-                or user.isExpressionAsyncgenObjectBody()
-            ):
-                if self.owner is user.getParentVariableProvider():
-                    return
+                (
+                    user.isExpressionGeneratorObjectBody()
+                    or user.isExpressionCoroutineObjectBody()
+                    or user.isExpressionAsyncgenObjectBody()
+                )
+            ) and self.owner is user.getParentVariableProvider():
+                return
 
             self.shared_scopes = True
 

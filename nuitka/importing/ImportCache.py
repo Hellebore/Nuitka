@@ -55,11 +55,7 @@ def addImportedModule(imported_module):
 
 
 def isImportedModuleByPath(module_relpath):
-    for key in imported_modules:
-        if key[0] == module_relpath:
-            return True
-
-    return False
+    return any(key[0] == module_relpath for key in imported_modules)
 
 
 def isImportedModuleByName(full_name):

@@ -164,8 +164,7 @@ def get_args(cls, dist, header=None):
             args = cls._get_script_args(  # pylint: disable=protected-access
                 type_, name, header, script_text
             )
-            for res in args:
-                yield res
+            yield from args
 
 
 try:
@@ -177,9 +176,9 @@ except AttributeError:
 def get_script_args(dist, executable=os.path.normpath(sys.executable), wininst=False):
     """Yield write_script() argument tuples for a distribution's entrypoints"""
     header = easy_install.get_script_header("", executable, wininst)
+    script_text = runner_script_template
     for group in "console_scripts", "gui_scripts":
         for name, _ep in dist.get_entry_map(group).items():
-            script_text = runner_script_template
             if sys.platform == "win32" or wininst:
                 # On Windows/wininst, add a .py extension and an .exe launcher
                 if group == "gui_scripts":

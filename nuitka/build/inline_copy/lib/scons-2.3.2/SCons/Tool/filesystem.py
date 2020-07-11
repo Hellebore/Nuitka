@@ -44,7 +44,7 @@ def copyto_emitter(target, source, env):
     n_target = []
 
     for t in target:
-        n_target = n_target + [t.File( str( s ) ) for s in source]
+        n_target += [t.File( str( s ) ) for s in source]
 
     return (n_target, source)
 

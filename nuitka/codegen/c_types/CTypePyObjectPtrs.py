@@ -93,11 +93,7 @@ class CPythonPyObjectPtrBase(CTypeBase):
 
     @classmethod
     def getReleaseCode(cls, variable_code_name, needs_check, emit):
-        if needs_check:
-            template = template_release_unclear
-        else:
-            template = template_release_clear
-
+        template = template_release_unclear if needs_check else template_release_clear
         emit(template % {"identifier": variable_code_name})
 
     @classmethod
@@ -322,9 +318,5 @@ class CTypeCellObject(CTypeBase):
 
     @classmethod
     def getReleaseCode(cls, variable_code_name, needs_check, emit):
-        if needs_check:
-            template = template_release_unclear
-        else:
-            template = template_release_clear
-
+        template = template_release_unclear if needs_check else template_release_clear
         emit(template % {"identifier": variable_code_name})

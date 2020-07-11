@@ -349,19 +349,19 @@ def get_default_version(env):
 
     debug('get_default_version(): msvc_version:%s msvs_version:%s'%(msvc_version,msvs_version))
 
-    if msvs_version and not msvc_version:
-        SCons.Warnings.warn(
-                SCons.Warnings.DeprecatedWarning,
-                "MSVS_VERSION is deprecated: please use MSVC_VERSION instead ")
-        return msvs_version
-    elif msvc_version and msvs_version:
-        if not msvc_version == msvs_version:
+    if msvs_version:
+        if not msvc_version:
             SCons.Warnings.warn(
-                    SCons.Warnings.VisualVersionMismatch,
-                    "Requested msvc version (%s) and msvs version (%s) do " \
-                    "not match: please use MSVC_VERSION only to request a " \
-                    "visual studio version, MSVS_VERSION is deprecated" \
-                    % (msvc_version, msvs_version))
+                    SCons.Warnings.DeprecatedWarning,
+                    "MSVS_VERSION is deprecated: please use MSVC_VERSION instead ")
+        else:
+            if msvc_version != msvs_version:
+                SCons.Warnings.warn(
+                        SCons.Warnings.VisualVersionMismatch,
+                        "Requested msvc version (%s) and msvs version (%s) do " \
+                        "not match: please use MSVC_VERSION only to request a " \
+                        "visual studio version, MSVS_VERSION is deprecated" \
+                        % (msvc_version, msvs_version))
         return msvs_version
     if not msvc_version:
         installed_vcs = cached_get_installed_vcs()

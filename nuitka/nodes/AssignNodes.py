@@ -144,9 +144,8 @@ class StatementAssignmentVariable(StatementChildHavingBase):
     def __init__(self, source, variable, source_ref, version=None):
         assert source is not None, source_ref
 
-        if variable is not None:
-            if version is None:
-                version = variable.allocateTargetNumber()
+        if variable is not None and version is None:
+            version = variable.allocateTargetNumber()
 
         self.variable = variable
         self.variable_version = version
@@ -448,9 +447,8 @@ class StatementDelVariable(StatementBase):
             tolerant = tolerant == "True"
         assert tolerant is True or tolerant is False, repr(tolerant)
 
-        if variable is not None:
-            if version is None:
-                version = variable.allocateTargetNumber()
+        if variable is not None and version is None:
+            version = variable.allocateTargetNumber()
 
         StatementBase.__init__(self, source_ref=source_ref)
 

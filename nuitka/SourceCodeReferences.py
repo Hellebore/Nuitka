@@ -109,9 +109,7 @@ class SourceCodeReference(object):
             it is already internal.
         """
         if not self.isInternal():
-            result = self._clone(self.line)
-
-            return result
+            return self._clone(self.line)
         else:
             return self
 

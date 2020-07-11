@@ -666,10 +666,7 @@ return 0;
             l = [ lib_name ]
             if extra_libs:
                 l.extend(extra_libs)
-            if append:
-                oldLIBS = context.AppendLIBS(l)
-            else:
-                oldLIBS = context.PrependLIBS(l)
+            oldLIBS = context.AppendLIBS(l) if append else context.PrependLIBS(l)
             sym = "HAVE_LIB" + lib_name
         else:
             oldLIBS = -1
@@ -756,11 +753,7 @@ def _Have(context, key, have, comment = None):
     else:
         line = "#define %s %s\n" % (key_up, str(have))
 
-    if comment is not None:
-        lines = "\n/* %s */\n" % comment + line
-    else:
-        lines = "\n" + line
-
+    lines = "\n/* %s */\n" % comment + line if comment is not None else "\n" + line
     if context.headerfilename:
         f = open(context.headerfilename, "a")
         f.write(lines)
@@ -782,7 +775,7 @@ def _LogFailed(context, text, msg):
         n = 1
         for line in lines:
             context.Log("%d: %s\n" % (n, line))
-            n = n + 1
+            n += 1
     if LogErrorMessages:
         context.Log("Error message: %s\n" % msg)
 

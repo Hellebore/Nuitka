@@ -112,11 +112,7 @@ class CTypeNuitkaIntOrLongStruct(CTypeBase):
             % variable_code_name
         )
 
-        if needs_check:
-            template = template_release_unclear
-        else:
-            template = template_release_clear
-
+        template = template_release_unclear if needs_check else template_release_clear
         emit(template % {"identifier": "%s.ilong_object" % variable_code_name})
 
         emit("}")
@@ -127,13 +123,10 @@ class CTypeNuitkaIntOrLongStruct(CTypeBase):
     ):
         assert False, "TODO"
 
-        if not needs_check:
-            emit("%s = NUITKA_BOOL_UNASSIGNED;" % value_name)
-        elif tolerant:
-            emit("%s = NUITKA_BOOL_UNASSIGNED;" % value_name)
-        else:
+        if needs_check and not tolerant:
             emit("%s = %s == NUITKA_BOOL_UNASSIGNED;" % (to_name, value_name))
-            emit("%s = NUITKA_BOOL_UNASSIGNED;" % value_name)
+
+        emit("%s = NUITKA_BOOL_UNASSIGNED;" % value_name)
 
     @classmethod
     def emitAssignmentCodeFromBoolCondition(cls, to_name, condition, emit):

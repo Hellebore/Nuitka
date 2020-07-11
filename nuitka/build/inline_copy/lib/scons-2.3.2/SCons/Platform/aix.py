@@ -69,8 +69,6 @@ def get_xlc(env, xlc=None, packages=[]):
             or ('/' not in xlc and filename.endswith('/' + xlc)):
                 xlcVersion = fileset.split()[1]
                 xlcPath, sep, xlc = filename.rpartition('/')
-            pass
-        pass
     return (xlcPath, xlc, xlcVersion)
 
 def generate(env):

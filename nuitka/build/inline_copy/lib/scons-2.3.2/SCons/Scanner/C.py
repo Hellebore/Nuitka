@@ -98,8 +98,8 @@ class SConsCPPScannerWrapper(object):
                               cpppath = path,
                               dict = dictify_CPPDEFINES(env))
         result = cpp(node)
+        fmt = "No dependency generated for file: %s (included from: %s) -- file not found"
         for included, includer in cpp.missing:
-            fmt = "No dependency generated for file: %s (included from: %s) -- file not found"
             SCons.Warnings.warn(SCons.Warnings.DependencyWarning,
                                 fmt % (included, includer))
         return result
@@ -119,11 +119,12 @@ def CScanner():
     # right configurability to let users pick between the scanners.
     #return SConsCPPScannerWrapper("CScanner", "CPPPATH")
 
-    cs = SCons.Scanner.ClassicCPP("CScanner",
-                                  "$CPPSUFFIXES",
-                                  "CPPPATH",
-                                  '^[ \t]*#[ \t]*(?:include|import)[ \t]*(<|")([^>"]+)(>|")')
-    return cs
+    return SCons.Scanner.ClassicCPP(
+        "CScanner",
+        "$CPPSUFFIXES",
+        "CPPPATH",
+        '^[ \t]*#[ \t]*(?:include|import)[ \t]*(<|")([^>"]+)(>|")',
+    )
 
 # Local Variables:
 # tab-width:4

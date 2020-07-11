@@ -184,11 +184,7 @@ def render_tree(root, child_func, prune=0, margin=[0], visited={}):
     children = child_func(root)
     retval = ""
     for pipe in margin[:-1]:
-        if pipe:
-            retval = retval + "| "
-        else:
-            retval = retval + "  "
-
+        retval += "| " if pipe else "  "
     if rname in visited:
         return retval + "+-[" + rname + "]\n"
 
@@ -199,8 +195,8 @@ def render_tree(root, child_func, prune=0, margin=[0], visited={}):
 
     for i in range(len(children)):
         margin.append(i<len(children)-1)
-        retval = retval + render_tree(children[i], child_func, prune, margin, visited
-)
+        retval +=         render_tree(children[i], child_func, prune, margin, visited
+        )
         margin.pop()
 
     return retval
@@ -766,6 +762,7 @@ def PrependPath(oldpath, newpath, sep = os.pathsep,
     if canonicalize:
         newpaths=list(map(canonicalize, newpaths))
 
+    normpaths = []
     if not delete_existing:
         # First uniquify the old paths, making sure to
         # preserve the first instance (in Unix/Linux,
@@ -773,7 +770,6 @@ def PrependPath(oldpath, newpath, sep = os.pathsep,
         # Then insert the new paths at the head of the list
         # if they're not already in the normpaths list.
         result = []
-        normpaths = []
         for path in paths:
             if not path:
                 continue
@@ -794,12 +790,11 @@ def PrependPath(oldpath, newpath, sep = os.pathsep,
     else:
         newpaths = newpaths + paths # prepend new paths
 
-        normpaths = []
         paths = []
         # now we add them only if they are unique
         for path in newpaths:
             normpath = os.path.normpath(os.path.normcase(path))
-            if path and not normpath in normpaths:
+            if path and normpath not in normpaths:
                 paths.append(path)
                 normpaths.append(normpath)
 
@@ -847,6 +842,7 @@ def AppendPath(oldpath, newpath, sep = os.pathsep,
     if canonicalize:
         newpaths=list(map(canonicalize, newpaths))
 
+    normpaths = []
     if not delete_existing:
         # add old paths to result, then
         # add new paths if not already present
@@ -854,7 +850,6 @@ def AppendPath(oldpath, newpath, sep = os.pathsep,
         # but it's not clear hashing the strings would be faster
         # than linear searching these typically short lists.)
         result = []
-        normpaths = []
         for path in paths:
             if not path:
                 continue
@@ -874,12 +869,11 @@ def AppendPath(oldpath, newpath, sep = os.pathsep,
         newpaths = paths + newpaths # append new paths
         newpaths.reverse()
 
-        normpaths = []
         paths = []
         # now we add them only if they are unique
         for path in newpaths:
             normpath = os.path.normpath(os.path.normcase(path))
-            if path and not normpath in normpaths:
+            if path and normpath not in normpaths:
                 paths.append(path)
                 normpaths.append(normpath)
         paths.reverse()
@@ -1310,11 +1304,7 @@ def make_path_relative(path):
         drive_s,path = os.path.splitdrive(path)
 
         import re
-        if not drive_s:
-            path=re.compile("/*(.*)").findall(path)[0]
-        else:
-            path=path[1:]
-
+        path = re.compile("/*(.*)").findall(path)[0] if not drive_s else path[1:]
     assert( not os.path.isabs( path ) ), path
     return path
 
@@ -1452,7 +1442,7 @@ def silent_intern(x):
 class Null(object):
     """ Null objects always and reliably "do nothing." """
     def __new__(cls, *args, **kwargs):
-        if not '_instance' in vars(cls):
+        if '_instance' not in vars(cls):
             cls._instance = super(Null, cls).__new__(cls, *args, **kwargs)
         return cls._instance
     def __init__(self, *args, **kwargs):

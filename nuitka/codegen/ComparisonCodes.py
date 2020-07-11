@@ -98,12 +98,11 @@ def generateComparisonExpressionCode(to_name, expression, emit, context):
     comparator = expression.getComparator()
 
     type_name = "PyObject *"
-    if comparator in ("Is", "IsNot"):
-        if (
-            left.getTypeShape() is ShapeTypeBool
-            and right.getTypeShape() is ShapeTypeBool
-        ):
-            type_name = "nuitka_bool"
+    if comparator in ("Is", "IsNot") and (
+        left.getTypeShape() is ShapeTypeBool
+        and right.getTypeShape() is ShapeTypeBool
+    ):
+        type_name = "nuitka_bool"
 
     left_name = context.allocateTempName("compexpr_left", type_name=type_name)
     right_name = context.allocateTempName("compexpr_right", type_name=type_name)

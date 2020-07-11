@@ -37,9 +37,10 @@ def _normalizePath(path):
     best = None
 
     for path_entry in sys.path:
-        if path.startswith(path_entry):
-            if best is None or len(path_entry) > len(best):
-                best = path_entry
+        if path.startswith(path_entry) and (
+            best is None or len(path_entry) > len(best)
+        ):
+            best = path_entry
 
     if best is not None:
         path = path.replace(best, "$PYTHONPATH")

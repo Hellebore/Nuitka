@@ -75,10 +75,7 @@ def listLoggedInstances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
         file.write('\n%s:\n' % classname)
         for ref in tracked_classes[classname]:
-            if inspect.isclass(ref):
-                obj = ref()
-            else:
-                obj = ref
+            obj = ref() if inspect.isclass(ref) else ref
             if obj is not None:
                 file.write('    %s\n' % repr(obj))
 
@@ -197,11 +194,7 @@ def func_shorten(func_tuple):
 
 
 TraceFP = {}
-if sys.platform == 'win32':
-    TraceDefault = 'con'
-else:
-    TraceDefault = '/dev/tty'
-
+TraceDefault = 'con' if sys.platform == 'win32' else '/dev/tty'
 TimeStampDefault = None
 StartTime = time.time()
 PreviousTime = StartTime

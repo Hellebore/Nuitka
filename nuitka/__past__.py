@@ -69,14 +69,12 @@ if str is bytes:
     from urllib import (  # pylint: disable=I0021,import-error,no-name-in-module
         urlretrieve,
     )
+    from cStringIO import StringIO  # pylint: disable=I0021,import-error
 else:
     from urllib.request import (  # pylint: disable=I0021,import-error,no-name-in-module
         urlretrieve,
     )
 
-if str is bytes:
-    from cStringIO import StringIO  # pylint: disable=I0021,import-error
-else:
     from io import StringIO  # pylint: disable=I0021,import-error
 
 try:
@@ -85,7 +83,7 @@ except ImportError:
     # Lame replacement for functools.total_ordering, which does not exist on
     # Python2.6, this requires "<" and "=" and adds all other operations.
     def total_ordering(cls):
-        cls.__ne__ = lambda self, other: not self == other
+        cls.__ne__ = lambda self, other: self != other
         cls.__le__ = lambda self, other: self == other or self < other
         cls.__gt__ = lambda self, other: self != other and not self < other
         cls.__ge__ = lambda self, other: self == other and not self < other
@@ -98,15 +96,13 @@ if str is bytes:
         Iterable,
         MutableSet,
     )
+    intern = intern  # pylint: disable=I0021,undefined-variable
 else:
     from collections.abc import (  # pylint: disable=I0021,import-error,no-name-in-module
         Iterable,  # pylint: disable=I0021,import-error
         MutableSet,  # pylint: disable=I0021,import-error
     )
 
-if str is bytes:
-    intern = intern  # pylint: disable=I0021,undefined-variable
-else:
     intern = sys.intern
 
 
@@ -118,9 +114,7 @@ def getMetaClassBase(meta_class_prefix):
     class MetaClass(ABCMeta):
         pass
 
-    MetaClassBase = MetaClass("%sMetaClassBase" % meta_class_prefix, (object,), {})
-
-    return MetaClassBase
+    return MetaClass("%sMetaClassBase" % meta_class_prefix, (object,), {})
 
 
 # For PyLint to be happy.

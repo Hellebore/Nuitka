@@ -207,7 +207,7 @@ class SConsOption(optparse.Option):
             if self.nargs in (1, '?'):
                 return self.check_value(opt, value)
             else:
-                return tuple([self.check_value(opt, v) for v in value])
+                return tuple(self.check_value(opt, v) for v in value)
 
     def process(self, opt, value, values, parser):
 
@@ -297,10 +297,7 @@ class SConsOptionParser(optparse.OptionParser):
         if option.takes_value():
             nargs = option.nargs
             if nargs == '?':
-                if had_explicit_value:
-                    value = rargs.pop(0)
-                else:
-                    value = option.const
+                value = rargs.pop(0) if had_explicit_value else option.const
             elif len(rargs) < nargs:
                 if nargs == 1:
                     if not option.choices:
@@ -378,7 +375,7 @@ class SConsOptionParser(optparse.OptionParser):
                         # Not known yet, so reject for now
                         largs_restore.append('='.join(lopt))
                 else:
-                    if l == "--" or l == "-":
+                    if l in ["--", "-"]:
                         # Stop normal processing and don't
                         # process the rest of the command-line opts
                         largs_restore.append(l)

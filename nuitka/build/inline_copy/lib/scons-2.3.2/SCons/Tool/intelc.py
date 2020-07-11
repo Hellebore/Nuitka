@@ -66,9 +66,7 @@ def uniquify(s):
     """Return a sequence containing only one copy of each unique element from input sequence s.
     Does not preserve order.
     Input sequence must be hashable (i.e. must be usable as a dictionary key)."""
-    u = {}
-    for x in s:
-        u[x] = 1
+    u = {x: 1 for x in s}
     return list(u.keys())
 
 def linux_ver_normalize(vstr):
@@ -85,11 +83,8 @@ def linux_ver_normalize(vstr):
         return float(vmaj) * 10. + float(vmin) + float(build) / 1000.;
     else:
         f = float(vstr)
-        if is_windows:
-            return f
-        else:
-            if f < 60: return f * 10.0
-            else: return f
+        if not is_windows and f < 60: return f * 10.0
+        else: return f
 
 def check_abi(abi):
     """Check for valid ABI (application binary interface) name,
@@ -593,9 +588,7 @@ def exists(env):
         # try env.Detect, maybe that will work
         if is_windows:
             return env.Detect('icl')
-        elif is_linux:
-            return env.Detect('icc')
-        elif is_mac:
+        else:
             return env.Detect('icc')
     return detected
 

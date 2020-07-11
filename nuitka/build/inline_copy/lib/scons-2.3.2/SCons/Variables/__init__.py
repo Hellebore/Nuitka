@@ -59,10 +59,7 @@ class Variables(object):
         self.options = []
         self.args = args
         if not SCons.Util.is_List(files):
-            if files:
-                files = [ files ]
-            else:
-                files = []
+            files = [ files ] if files else []
         self.files = files
         self.unknown = {}
 
@@ -285,10 +282,7 @@ class Variables(object):
             options = self.options
 
         def format(opt, self=self, env=env):
-            if opt.key in env:
-                actual = env.subst('${%s}' % opt.key)
-            else:
-                actual = None
+            actual = env.subst('${%s}' % opt.key) if opt.key in env else None
             return self.FormatVariableHelpText(env, opt.key, opt.help, opt.default, actual, opt.aliases)
         lines = [_f for _f in map(format, options) if _f]
 
@@ -300,7 +294,7 @@ class Variables(object):
     def FormatVariableHelpText(self, env, key, help, default, actual, aliases=[]):
         # Don't display the key name itself as an alias.
         aliases = [a for a in aliases if a != key]
-        if len(aliases)==0:
+        if not aliases:
             return self.format % (key, help, default, actual)
         else:
             return self.format_ % (key, help, default, actual, aliases)

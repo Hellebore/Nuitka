@@ -133,7 +133,7 @@ class Value(SCons.Node.Node):
         ###TODO: something reasonable about universal newlines
         contents = str(self.value)
         for kid in self.children(None):
-            contents = contents + kid.get_contents().decode()
+            contents += kid.get_contents().decode()
         return contents
 
     def get_contents(self):

@@ -106,8 +106,9 @@ def _dllEmitter(target, source, env, paramtp):
         raise SCons.Errors.UserError('A shared library should have exactly one target with the suffix: %s' % env.subst('$%sSUFFIX' % paramtp))
 
     insert_def = env.subst("$WINDOWS_INSERT_DEF")
-    if not insert_def in ['', '0', 0] and \
-       not env.FindIxes(source, "WINDOWSDEFPREFIX", "WINDOWSDEFSUFFIX"):
+    if insert_def not in ['', '0', 0] and not env.FindIxes(
+        source, "WINDOWSDEFPREFIX", "WINDOWSDEFSUFFIX"
+    ):
 
         # append a def file to the list of sources
         extrasources.append(

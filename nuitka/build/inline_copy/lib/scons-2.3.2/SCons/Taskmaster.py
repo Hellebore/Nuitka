@@ -1036,8 +1036,7 @@ class Taskmaster(object):
             if cycle:
                 desc = desc + "  " + " -> ".join(map(str, cycle)) + "\n"
             else:
-                desc = desc + \
-                    "  Internal Error: no cycle found for node %s (%s) in state %s\n" %  \
+                desc += "  Internal Error: no cycle found for node %s (%s) in state %s\n" %  \
                     (node, repr(node), StateString[node.get_state()])
 
         raise SCons.Errors.UserError(desc)

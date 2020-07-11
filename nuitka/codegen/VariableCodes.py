@@ -320,11 +320,7 @@ def getVariableAssignmentCode(
     context, emit, variable, variable_trace, tmp_name, needs_release, in_place
 ):
     # For transfer of ownership.
-    if context.needsCleanup(tmp_name):
-        ref_count = 1
-    else:
-        ref_count = 0
-
+    ref_count = 1 if context.needsCleanup(tmp_name) else 0
     if variable.isModuleVariable():
         variable_declaration = VariableDeclaration(
             "module_var", variable.getName(), None, None
@@ -380,11 +376,7 @@ def _getVariableDelCode(
         if variable.isLocalVariable():
             context.setVariableType(variable, variable_declaration_new)
 
-    if needs_check and not tolerant:
-        to_name = context.getBoolResName()
-    else:
-        to_name = None
-
+    to_name = context.getBoolResName() if needs_check and not tolerant else None
     variable_declaration_old.getCType().getDeleteObjectCode(
         to_name=to_name,
         value_name=variable_declaration_old,

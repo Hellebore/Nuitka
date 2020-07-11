@@ -416,14 +416,13 @@ class Task(object):
                 self.out_of_date.append(t)
                 needs_executing = True
 
-        if needs_executing:
-            for t in self.targets:
+        for t in self.targets:
+            if needs_executing:
                 t.set_state(NODE_EXECUTING)
                 for s in t.side_effects:
                     # add disambiguate here to mirror the call on targets in first loop above
                     s.disambiguate().set_state(NODE_EXECUTING)
-        else:
-            for t in self.targets:
+            else:
                 # We must invoke visited() to ensure that the node
                 # information has been computed before allowing the
                 # parent nodes to execute. (That could occur in a
@@ -1069,8 +1068,7 @@ class Taskmaster(object):
             if cycle:
                 desc = desc + "  " + " -> ".join(map(str, cycle)) + "\n"
             else:
-                desc = desc + \
-                    "  Internal Error: no cycle found for node %s (%s) in state %s\n" %  \
+                desc += "  Internal Error: no cycle found for node %s (%s) in state %s\n" %  \
                     (node, repr(node), StateString[node.get_state()])
 
         raise SCons.Errors.UserError(desc)

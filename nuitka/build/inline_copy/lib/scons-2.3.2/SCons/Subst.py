@@ -100,10 +100,7 @@ class SpecialAttrWrapper(object):
         canonical string we return from for_signature().  Else
         we will simply return lstr."""
         self.lstr = lstr
-        if for_signature:
-            self.forsig = for_signature
-        else:
-            self.forsig = lstr
+        self.forsig = for_signature if for_signature else lstr
 
     def __str__(self):
         return self.lstr
@@ -345,7 +342,7 @@ _regex_remove = [ _rm, None, _remove ]
 
 def _rm_list(list):
     #return [ l for l in list if not l in ('$(', '$)') ]
-    return [l for l in list if not l in ('$(', '$)')]
+    return [l for l in list if l not in ('$(', '$)')]
 
 def _remove_list(list):
     result = []
@@ -755,46 +752,47 @@ def scons_subst_list(strSubst, env, mode=SUBST_RAW, target=None, source=None, gv
             inherits the object attributes of x (in particular, the
             escape function) by wrapping it as CmdStringHolder."""
 
-            if not self.in_strip or self.mode != SUBST_SIG:
+            if self.in_strip and self.mode == SUBST_SIG:
+                return
+            try:
+                current_word = self[-1][-1]
+            except IndexError:
+                self.add_new_word(x)
+            else:
+                # All right, this is a hack and it should probably
+                # be refactored out of existence in the future.
+                # The issue is that we want to smoosh words together
+                # and make one file name that gets escaped if
+                # we're expanding something like foo$EXTENSION,
+                # but we don't want to smoosh them together if
+                # it's something like >$TARGET, because then we'll
+                # treat the '>' like it's part of the file name.
+                # So for now, just hard-code looking for the special
+                # command-line redirection characters...
                 try:
-                    current_word = self[-1][-1]
+                    last_char = str(current_word)[-1]
                 except IndexError:
+                    last_char = '\0'
+                if last_char in '<>|':
                     self.add_new_word(x)
                 else:
-                    # All right, this is a hack and it should probably
-                    # be refactored out of existence in the future.
-                    # The issue is that we want to smoosh words together
-                    # and make one file name that gets escaped if
-                    # we're expanding something like foo$EXTENSION,
-                    # but we don't want to smoosh them together if
-                    # it's something like >$TARGET, because then we'll
-                    # treat the '>' like it's part of the file name.
-                    # So for now, just hard-code looking for the special
-                    # command-line redirection characters...
-                    try:
-                        last_char = str(current_word)[-1]
-                    except IndexError:
-                        last_char = '\0'
-                    if last_char in '<>|':
-                        self.add_new_word(x)
-                    else:
-                        y = current_word + x
+                    y = current_word + x
 
-                        # We used to treat a word appended to a literal
-                        # as a literal itself, but this caused problems
-                        # with interpreting quotes around space-separated
-                        # targets on command lines.  Removing this makes
-                        # none of the "substantive" end-to-end tests fail,
-                        # so we'll take this out but leave it commented
-                        # for now in case there's a problem not covered
-                        # by the test cases and we need to resurrect this.
-                        #literal1 = self.literal(self[-1][-1])
-                        #literal2 = self.literal(x)
-                        y = self.conv(y)
-                        if is_String(y):
-                            #y = CmdStringHolder(y, literal1 or literal2)
-                            y = CmdStringHolder(y, None)
-                        self[-1][-1] = y
+                    # We used to treat a word appended to a literal
+                    # as a literal itself, but this caused problems
+                    # with interpreting quotes around space-separated
+                    # targets on command lines.  Removing this makes
+                    # none of the "substantive" end-to-end tests fail,
+                    # so we'll take this out but leave it commented
+                    # for now in case there's a problem not covered
+                    # by the test cases and we need to resurrect this.
+                    #literal1 = self.literal(self[-1][-1])
+                    #literal2 = self.literal(x)
+                    y = self.conv(y)
+                    if is_String(y):
+                        #y = CmdStringHolder(y, literal1 or literal2)
+                        y = CmdStringHolder(y, None)
+                    self[-1][-1] = y
 
         def add_new_word(self, x):
             if not self.in_strip or self.mode != SUBST_SIG:

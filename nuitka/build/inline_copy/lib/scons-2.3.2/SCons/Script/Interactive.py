@@ -123,10 +123,7 @@ class SConsInteractiveCmd(cmd.Cmd):
         for key, val in kw.items():
             setattr(self, key, val)
 
-        if sys.platform == 'win32':
-            self.shell_variable = 'COMSPEC'
-        else:
-            self.shell_variable = 'SHELL'
+        self.shell_variable = 'COMSPEC' if sys.platform == 'win32' else 'SHELL'
 
     def default(self, argv):
         print "*** Unknown command: %s" % argv[0]

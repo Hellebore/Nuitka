@@ -401,11 +401,9 @@ def __addConstantInitCode(
                 % (constant_identifier, constant_value)
             )
 
-            return
         elif 0 > constant_value >= min_signed_long:
             emit("%s = PyLong_FromLong(%sl);" % (constant_identifier, constant_value))
 
-            return
         elif constant_value == min_signed_long - 1:
             # There are compilers out there, that give warnings for the literal
             # MININT when used. We work around that warning here.
@@ -422,7 +420,6 @@ CHECK_OBJECT(const_int_pos_1);
                 )
             )
 
-            return
         else:
             getMarshalCode(
                 constant_identifier=constant_identifier,
@@ -430,12 +427,11 @@ CHECK_OBJECT(const_int_pos_1);
                 emit=emit,
             )
 
-            return
+        return
     elif constant_type is int:
         if constant_value >= min_signed_long:
             emit("%s = PyInt_FromLong(%sl);" % (constant_identifier, constant_value))
 
-            return
         else:
             # There are compilers out there, that give warnings for the literal
             # MININT when used. We work around that warning here.
@@ -453,8 +449,7 @@ CHECK_OBJECT(const_int_pos_1);
                 )
             )
 
-            return
-
+        return
     if constant_type is unicode:
         try:
             encoded = constant_value.encode("utf-8")
@@ -465,7 +460,7 @@ CHECK_OBJECT(const_int_pos_1);
                     % (constant_identifier, stream_data.getStreamDataCode(encoded))
                 )
             else:
-                if str is not bytes and len(constant_value) == len(encoded):
+                if len(constant_value) == len(encoded):
                     emit(
                         "%s = UNSTREAM_STRING_ASCII(%s, %d);"
                         % (

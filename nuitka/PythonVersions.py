@@ -127,10 +127,7 @@ def needsSetLiteralReverseInsertion():
 
 
 def needsDuplicateArgumentColOffset():
-    if python_version < 353:
-        return False
-    else:
-        return True
+    return python_version >= 353
 
 
 def isUninstalledPython():
@@ -246,9 +243,10 @@ def getPythonABI():
         # Cyclic dependency here.
         from nuitka.Options import isPythonDebug
 
-        if isPythonDebug() or hasattr(sys, "getobjects"):
-            if not abiflags.startswith("d"):
-                abiflags = "d" + abiflags
+        if (
+            isPythonDebug() or hasattr(sys, "getobjects")
+        ) and not abiflags.startswith("d"):
+            abiflags = "d" + abiflags
     else:
         abiflags = ""
 

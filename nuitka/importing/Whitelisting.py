@@ -432,11 +432,11 @@ areallylongpackageandmodulenametotestreprtruncation""",
 
 
 def isWhiteListedNotExistingModule(module_name):
-    result = False
-    for white_listed in getModuleWhiteList():
-        if module_name == white_listed or module_name.startswith(white_listed + "."):
-            result = True
-            break
+    result = any(
+        module_name == white_listed
+        or module_name.startswith(white_listed + ".")
+        for white_listed in getModuleWhiteList()
+    )
 
     if not result and module_name in sys.builtin_module_names:
         warning(

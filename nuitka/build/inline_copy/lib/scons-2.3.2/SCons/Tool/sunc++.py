@@ -93,11 +93,7 @@ def get_package_info(package_name, pkginfo, pkgchk):
 # version of it is installed
 def get_cppc(env):
     cxx = env.subst('$CXX')
-    if cxx:
-        cppcPath = os.path.dirname(cxx)
-    else:
-        cppcPath = None
-
+    cppcPath = os.path.dirname(cxx) if cxx else None
     cppcVersion = None
 
     pkginfo = env.subst('$PKGINFO')

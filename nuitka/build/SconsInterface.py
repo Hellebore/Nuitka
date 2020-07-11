@@ -174,9 +174,12 @@ def _setupSconsEnvironment():
     """
 
     # For Python2, avoid unicode working directory.
-    if Utils.isWin32Windows() and python_version < 300:
-        if os.getcwd() != os.getcwdu():
-            os.chdir(getWindowsShortPathName(os.getcwdu()))
+    if (
+        Utils.isWin32Windows()
+        and python_version < 300
+        and os.getcwd() != os.getcwdu()
+    ):
+        os.chdir(getWindowsShortPathName(os.getcwdu()))
 
     if Utils.isWin32Windows():
         # On Win32, we use the Python.DLL path for some things. We pass it

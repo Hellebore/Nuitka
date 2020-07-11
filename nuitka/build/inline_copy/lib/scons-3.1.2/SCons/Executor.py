@@ -188,10 +188,7 @@ class Executor(object, with_metaclass(NoSlotsPyPy)):
         self.post_actions = []
         self.env = env
         self.overridelist = overridelist
-        if targets or sources:
-            self.batches = [Batch(targets[:], sources[:])]
-        else:
-            self.batches = []
+        self.batches = [Batch(targets[:], sources[:])] if targets or sources else []
         self.builder_kw = builder_kw
         self._do_execute = 1
         self._execute_str = 1
@@ -538,9 +535,7 @@ class Executor(object, with_metaclass(NoSlotsPyPy)):
         else:
             sourcelist = self.get_all_sources()
         if ignore:
-            idict = {}
-            for i in ignore:
-                idict[i] = 1
+            idict = {i: 1 for i in ignore}
             sourcelist = [s for s in sourcelist if s not in idict]
 
         memo_dict[key] = sourcelist

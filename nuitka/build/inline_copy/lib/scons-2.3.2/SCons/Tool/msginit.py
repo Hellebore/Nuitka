@@ -35,10 +35,7 @@ def _optional_no_translator_flag(env):
   """ Return '--no-translator' flag if we run *msginit(1)*  in non-interactive
       mode."""
   import SCons.Util
-  if env.has_key('POAUTOINIT'):
-    autoinit = env['POAUTOINIT']
-  else:
-    autoinit = False
+  autoinit = env['POAUTOINIT'] if env.has_key('POAUTOINIT') else False
   if autoinit:
     return [SCons.Util.CLVar('--no-translator')]
   else:

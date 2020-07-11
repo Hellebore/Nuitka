@@ -152,10 +152,10 @@ else:
             if op >= HAVE_ARGUMENT:
                 if op != SET_LINENO:
                     result.append(code[i:i+3])
-                i = i+3
+                i += 3
             else:
                 result.append(c)
-                i = i+1
+                i += 1
         return ''.join(result)
 
 strip_quotes = re.compile('^[\'"](.*)[\'"]$')
@@ -366,10 +366,7 @@ def _do_create_action(act, kw):
             del kw['generator']
         except KeyError:
             gen = 0
-        if gen:
-            action_type = CommandGeneratorAction
-        else:
-            action_type = FunctionAction
+        action_type = CommandGeneratorAction if gen else FunctionAction
         return action_type(act, kw)
 
     if is_String(act):
@@ -532,8 +529,8 @@ class _ActionAction(ActionBase):
 
         if presub is _null:
             presub = self.presub
-            if presub is _null:
-                presub = print_actions_presub
+        if presub is _null:
+            presub = print_actions_presub
         if exitstatfunc is _null: exitstatfunc = self.exitstatfunc
         if show is _null:  show = print_actions
         if execute is _null:  execute = execute_actions
@@ -704,10 +701,9 @@ class CommandAction(_ActionAction):
         if SCons.Debug.track_instances: logInstanceCreation(self, 'Action.CommandAction')
 
         _ActionAction.__init__(self, **kw)
-        if is_List(cmd):
-            if list(filter(is_List, cmd)):
-                raise TypeError("CommandAction should be given only " \
-                      "a single command")
+        if is_List(cmd) and list(filter(is_List, cmd)):
+            raise TypeError("CommandAction should be given only " \
+                  "a single command")
         self.cmd_list = cmd
 
     def __str__(self):
@@ -823,10 +819,7 @@ class CommandAction(_ActionAction):
         """
         from SCons.Subst import SUBST_SIG
         cmd = self.cmd_list
-        if is_List(cmd):
-            cmd = ' '.join(map(str, cmd))
-        else:
-            cmd = str(cmd)
+        cmd = ' '.join(map(str, cmd)) if is_List(cmd) else str(cmd)
         if executor:
             return env.subst_target_source(cmd, SUBST_SIG, executor=executor)
         else:
@@ -955,15 +948,12 @@ class LazyAction(CommandGeneratorAction, CommandAction):
 
     def get_parent_class(self, env):
         c = env.get(self.var)
-        if is_String(c) and not '\n' in c:
+        if is_String(c) and '\n' not in c:
             return CommandAction
         return CommandGeneratorAction
 
     def _generate_cache(self, env):
-        if env:
-            c = env.get(self.var, '')
-        else:
-            c = ''
+        c = env.get(self.var, '') if env else ''
         gen_cmd = Action(c, **self.gen_kw)
         if not gen_cmd:
             raise SCons.Errors.UserError("$%s value %s cannot be used to create an Action." % (self.var, repr(c)))
@@ -1250,8 +1240,7 @@ class ActionFactory(object):
 
     def __call__(self, *args, **kw):
         ac = ActionCaller(self, args, kw)
-        action = Action(ac, strfunction=ac.strfunction)
-        return action
+        return Action(ac, strfunction=ac.strfunction)
 
 # Local Variables:
 # tab-width:4

@@ -41,7 +41,7 @@ class md5obj(object):
     md5_module = md5
 
     def __init__(self, name, string=''):
-        if not name in ('MD5', 'md5'):
+        if name not in ('MD5', 'md5'):
             raise ValueError("unsupported hash type")
         self.name = 'md5'
         self.m = self.md5_module.md5()

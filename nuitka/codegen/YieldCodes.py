@@ -36,11 +36,7 @@ def _getYieldPreserveCode(
 
     # Need not preserve it, if we are not going to use it for the purpose
     # of releasing it.
-    if type(value_name) is tuple:
-        value_names = value_name
-    else:
-        value_names = (value_name,)
-
+    value_names = value_name if type(value_name) is tuple else (value_name, )
     for name in value_names:
         if not context.needsCleanup(name):
             locals_preserved.remove(name)

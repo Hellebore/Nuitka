@@ -56,11 +56,7 @@ from SCons.Node.Python import Value
 from SCons.Util import is_String, is_Sequence, is_Dict, to_bytes, PY3
 
 
-if PY3:
-    TEXTFILE_FILE_WRITE_MODE = 'w'
-else:
-    TEXTFILE_FILE_WRITE_MODE = 'wb'
-
+TEXTFILE_FILE_WRITE_MODE = 'w' if PY3 else 'wb'
 LINESEP = '\n'
 
 def _do_subst(node, subs):
@@ -110,18 +106,13 @@ def _action(target, source, env):
         subst_dict = env['SUBST_DICT']
         if is_Dict(subst_dict):
             subst_dict = list(subst_dict.items())
-        elif is_Sequence(subst_dict):
-            pass
-        else:
+        elif not is_Sequence(subst_dict):
             raise SCons.Errors.UserError('SUBST_DICT must be dict or sequence')
         subs = []
         for (k, value) in subst_dict:
             if callable(value):
                 value = value()
-            if is_String(value):
-                value = env.subst(value)
-            else:
-                value = str(value)
+            value = env.subst(value) if is_String(value) else str(value)
             subs.append((k, value))
 
     # write the file

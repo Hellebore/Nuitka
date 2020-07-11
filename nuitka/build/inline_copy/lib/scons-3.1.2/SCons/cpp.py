@@ -372,10 +372,7 @@ class PreProcessor(object):
         """
         fname = t[2]
         for d in self.searchpath[t[1]]:
-            if d == os.curdir:
-                f = fname
-            else:
-                f = os.path.join(d, fname)
+            f = fname if d == os.curdir else os.path.join(d, fname)
             if os.path.isfile(f):
                 return f
         return None
@@ -551,7 +548,7 @@ class PreProcessor(object):
         where FILE is a #define somewhere else."""
 
         s = t[1]
-        while not s[0] in '<"':
+        while s[0] not in '<"':
             #print("s =", s)
             try:
                 s = self.cpp_namespace[s]

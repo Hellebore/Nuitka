@@ -180,11 +180,7 @@ def func_shorten(func_tuple):
 
 
 TraceFP = {}
-if sys.platform == 'win32':
-    TraceDefault = 'con'
-else:
-    TraceDefault = '/dev/tty'
-
+TraceDefault = 'con' if sys.platform == 'win32' else '/dev/tty'
 TimeStampDefault = None
 StartTime = time.time()
 PreviousTime = StartTime

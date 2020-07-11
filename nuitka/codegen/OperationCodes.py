@@ -701,12 +701,12 @@ def _getUnaryOperationCode(
 ):
     impl_helper, ref_count = OperatorCodes.unary_operator_codes[operator]
 
-    helper = "UNARY_OPERATION"
-    prefix_args = (impl_helper,)
-
     with withObjectCodeTemporaryAssignment(
-        to_name, "op_%s_res" % operator.lower(), expression, emit, context
-    ) as value_name:
+            to_name, "op_%s_res" % operator.lower(), expression, emit, context
+        ) as value_name:
+
+        helper = "UNARY_OPERATION"
+        prefix_args = (impl_helper,)
 
         emit(
             "%s = %s(%s);"

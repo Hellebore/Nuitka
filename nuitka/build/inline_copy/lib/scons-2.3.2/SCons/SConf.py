@@ -121,10 +121,7 @@ def _stringConfigH(target, source, env):
 
 
 def NeedConfigHBuilder():
-    if len(_ac_config_hs) == 0:
-       return False
-    else:
-       return True
+    return len(_ac_config_hs) != 0
 
 def CreateConfigHBuilder(env):
     """Called if necessary just before the building targets phase begins."""
@@ -283,8 +280,9 @@ class SConfBuildTask(SCons.Taskmaster.AlwaysTask):
                     t.set_state(SCons.Node.up_to_date)
                     if T: Trace(': set_state(up_to-date)')
                 else:
-                    if T: Trace(': get_state() %s' % t.get_state())
-                    if T: Trace(': changed() %s' % t.changed())
+                    if T:
+                        Trace(': get_state() %s' % t.get_state())
+                        Trace(': changed() %s' % t.changed())
                     if (t.get_state() != SCons.Node.up_to_date and t.changed()):
                         changed = True
                     if T: Trace(': changed %s' % changed)
@@ -596,11 +594,7 @@ class SConfBase(object):
             self.env['SPAWN'] = save_spawn
 
         _ac_build_counter = _ac_build_counter + 1
-        if result:
-            self.lastTarget = nodes[0]
-        else:
-            self.lastTarget = None
-
+        self.lastTarget = nodes[0] if result else None
         return result
 
     def TryAction(self, action, text = None, extension = ""):
@@ -641,15 +635,15 @@ class SConfBase(object):
         is saved in self.lastTarget (for further processing).
         """
         ok = self.TryLink(text, extension)
-        if( ok ):
+        if ( ok ):
             prog = self.lastTarget
             pname = prog.path
             output = self.confdir.File(os.path.basename(pname)+'.out')
             node = self.env.Command(output, prog, [ [ pname, ">", "${TARGET}"] ])
             ok = self.BuildNodes(node)
-            if ok:
-                outputStr = output.get_contents()
-                return( 1, outputStr)
+        if ok:
+            outputStr = output.get_contents()
+            return( 1, outputStr)
         return (0, "")
 
     class TestWrapper(object):
@@ -681,11 +675,10 @@ class SConfBase(object):
 
     def _createDir( self, node ):
         dirName = str(node)
-        if dryrun:
-            if not os.path.isdir( dirName ):
+        if not os.path.isdir( dirName ):
+            if dryrun:
                 raise ConfigureDryRunError(dirName)
-        else:
-            if not os.path.isdir( dirName ):
+            else:
                 os.makedirs( dirName )
                 node._exists = 1
 
@@ -751,7 +744,7 @@ class SConfBase(object):
         self.env.Replace( BUILDERS=blds )
         self.active = 0
         sconf_global = None
-        if not self.config_h is None:
+        if self.config_h is not None:
             _ac_config_hs[self.config_h] = self.config_h_text
         self.env.fs = self.lastEnvFs
 
@@ -937,15 +930,13 @@ def createIncludesFromHeaders(headers, leaveLast, include_quotes = '""'):
     # statements from the specified header (list)
     if not SCons.Util.is_List(headers):
         headers = [headers]
-    l = []
     if leaveLast:
         lastHeader = headers[-1]
         headers = headers[:-1]
     else:
         lastHeader = None
-    for s in headers:
-        l.append("#include %s%s%s\n"
-                 % (include_quotes[0], s, include_quotes[1]))
+    l = ["#include %s%s%s\n"
+                 % (include_quotes[0], s, include_quotes[1]) for s in headers]
     return ''.join(l), lastHeader
 
 def CheckHeader(context, header, include_quotes = '<>', language = None):

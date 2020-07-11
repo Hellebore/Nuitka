@@ -522,11 +522,7 @@ class SConsEnvironment(SCons.Environment.Base):
             msg = """The build_dir keyword has been deprecated; use the variant_dir keyword instead."""
             SCons.Warnings.warn(SCons.Warnings.DeprecatedBuildDirWarning, msg)
         def subst_element(x, subst=self.subst):
-            if SCons.Util.is_List(x):
-                x = list(map(subst, x))
-            else:
-                x = subst(x)
-            return x
+            return list(map(subst, x)) if SCons.Util.is_List(x) else subst(x)
         ls = list(map(subst_element, ls))
         subst_kw = {}
         for key, val in kw.items():

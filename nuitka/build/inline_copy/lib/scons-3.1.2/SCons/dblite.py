@@ -131,8 +131,9 @@ class dblite(object):
                         # Note how we catch KeyErrors too here, which might happen
                         # when we don't have cPickle available (default pickle
                         # throws it).
-                        if (ignore_corrupt_dbfiles == 0): raise
-                        if (ignore_corrupt_dbfiles == 1):
+                        if ignore_corrupt_dbfiles == 0:
+                            raise
+                        elif ignore_corrupt_dbfiles == 1:
                             corruption_warning(self._file_name)
 
     def close(self):

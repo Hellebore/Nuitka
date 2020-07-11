@@ -223,8 +223,7 @@ if os.environ.get('SCONS_HORRIBLE_REGRESSION_TEST_HACK') is not None:
     from types import ClassType
     def callable(obj):
         if hasattr(obj, '__call__'): return True
-        if isinstance(obj, (ClassType, type)): return True
-        return False
+        return isinstance(obj, (ClassType, type))
     import builtins
     builtins.callable = callable
     del callable

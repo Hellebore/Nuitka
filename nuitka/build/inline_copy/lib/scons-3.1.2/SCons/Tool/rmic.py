@@ -61,11 +61,7 @@ def emit_rmic_classes(target, source, env):
             except AttributeError:
                 classdir = '.'
     classdir = env.Dir(classdir).rdir()
-    if str(classdir) == '.':
-        c_ = None
-    else:
-        c_ = str(classdir) + os.sep
-
+    c_ = None if str(classdir) == '.' else str(classdir) + os.sep
     slist = []
     for src in source:
         try:

@@ -99,13 +99,10 @@ class CTypeNuitkaBoolEnum(CTypeBase):
     def getDeleteObjectCode(
         cls, to_name, value_name, needs_check, tolerant, emit, context
     ):
-        if not needs_check:
-            emit("%s = NUITKA_BOOL_UNASSIGNED;" % value_name)
-        elif tolerant:
-            emit("%s = NUITKA_BOOL_UNASSIGNED;" % value_name)
-        else:
+        if needs_check and not tolerant:
             emit("%s = %s == NUITKA_BOOL_UNASSIGNED;" % (to_name, value_name))
-            emit("%s = NUITKA_BOOL_UNASSIGNED;" % value_name)
+
+        emit("%s = NUITKA_BOOL_UNASSIGNED;" % value_name)
 
     @classmethod
     def emitAssignmentCodeFromBoolCondition(cls, to_name, condition, emit):

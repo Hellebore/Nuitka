@@ -138,7 +138,7 @@ CachePush = SCons.Action.Action(CachePushFunc, None)
 
 # Nasty hack to cut down to one warning for each cachedir path that needs
 # upgrading.
-warned = dict()
+warned = {}
 
 class CacheDir(object):
 
@@ -156,7 +156,7 @@ class CacheDir(object):
         self.path = path
         self.current_cache_debug = None
         self.debugFP = None
-        self.config = dict()
+        self.config = {}
         if path is None:
             return
 

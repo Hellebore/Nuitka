@@ -100,11 +100,7 @@ def getFunctionQualnameObj(owner, context):
         NULL instead.
     """
 
-    if owner.isExpressionFunctionBody():
-        min_version = 300
-    else:
-        min_version = 350
-
+    min_version = 300 if owner.isExpressionFunctionBody() else 350
     if python_version < min_version:
         return "NULL"
 
@@ -450,13 +446,11 @@ def getFunctionDirectDecl(function_identifier, closure_variables, file_scope, co
             variable_c_type.getVariableArgDeclarationCode(variable_declaration)
         )
 
-    result = template_function_direct_declaration % {
+    return template_function_direct_declaration % {
         "file_scope": file_scope,
         "function_identifier": function_identifier,
         "direct_call_arg_spec": ", ".join(parameter_objects_decl),
     }
-
-    return result
 
 
 def setupFunctionLocalVariables(

@@ -129,9 +129,7 @@ def find_version_specific_mingw_paths():
 
     Use glob'ing to find such and add to mingw_paths
     """
-    new_paths = glob.glob(r"C:\mingw-w64\*\mingw64\bin")
-
-    return new_paths
+    return glob.glob(r"C:\mingw-w64\*\mingw64\bin")
 
 
 def generate(env):

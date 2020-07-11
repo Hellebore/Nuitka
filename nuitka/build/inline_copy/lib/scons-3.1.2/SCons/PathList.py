@@ -108,10 +108,7 @@ class _PathList(object):
             except (AttributeError, TypeError):
                 type = TYPE_OBJECT
             else:
-                if not found:
-                    type = TYPE_STRING_NO_SUBST
-                else:
-                    type = TYPE_STRING_SUBST
+                type = TYPE_STRING_NO_SUBST if not found else TYPE_STRING_SUBST
             pl.append((type, p))
 
         self.pathlist = tuple(pl)

@@ -132,7 +132,7 @@ def relpath(path, start=os.path.curdir):
         return os.path.curdir
     return os.path.join(*rel_list)
 
-if not "relpath" in os.path.__all__:
+if "relpath" not in os.path.__all__:
     os.path.relpath = relpath
 
 # This is how we re-invoke SCons from inside MSVS Project files.
@@ -636,10 +636,7 @@ class _GenerateV7DSP(_DSPGenerator):
             self.dspheader = V8DSPHeader
             self.dspconfiguration = V8DSPConfiguration
         else:
-            if self.version_num >= 7.1:
-                self.versionstr = '7.10'
-            else:
-                self.versionstr = '7.00'
+            self.versionstr = '7.10' if self.version_num >= 7.1 else '7.00'
             self.dspheader = V7DSPHeader
             self.dspconfiguration = V7DSPConfiguration
         self.file = None
@@ -691,6 +688,7 @@ class _GenerateV7DSP(_DSPGenerator):
         self.file.write('\t<Configurations>\n')
 
         confkeys = sorted(self.configs.keys())
+        starting = 'echo Starting SCons && '
         for kind in confkeys:
             variant = self.configs[kind].variant
             platform = self.configs[kind].platform
@@ -703,11 +701,7 @@ class _GenerateV7DSP(_DSPGenerator):
             if not env_has_buildtarget:
                 self.env['MSVSBUILDTARGET'] = buildtarget
 
-            starting = 'echo Starting SCons && '
-            if cmdargs:
-                cmdargs = ' ' + cmdargs
-            else:
-                cmdargs = ''
+            cmdargs = ' ' + cmdargs if cmdargs else ''
             buildcmd    = xmlify(starting + self.env.subst('$MSVSBUILDCOM', 1) + cmdargs)
             rebuildcmd  = xmlify(starting + self.env.subst('$MSVSREBUILDCOM', 1) + cmdargs)
             cleancmd    = xmlify(starting + self.env.subst('$MSVSCLEANCOM', 1) + cmdargs)
@@ -774,8 +768,10 @@ class _GenerateV7DSP(_DSPGenerator):
 
         self.file.write('\t<Files>\n')
 
-        cats = sorted([k for k in categories.keys() if self.sources[k]],
-                      key=lambda a: a.lower())
+        cats = sorted(
+            [k for k in categories if self.sources[k]], key=lambda a: a.lower()
+        )
+
         for kind in cats:
             if len(cats) > 1:
                 self.file.write('\t\t<Filter\n'
@@ -1098,8 +1094,10 @@ class _GenerateV10DSP(_DSPGenerator):
                       'Resource Files': 'r;rc;ico;cur;bmp;dlg;rc2;rct;bin;cnt;rtf;gif;jpg;jpeg;jpe',
                       'Other Files': ''}
 
-        cats = sorted([k for k in categories.keys() if self.sources[k]],
-		              key = lambda a: a.lower())
+        cats = sorted(
+            [k for k in categories if self.sources[k]], key=lambda a: a.lower()
+        )
+
 
         # print vcxproj.filters file first
         self.filters_file.write('\t<ItemGroup>\n')
@@ -1293,7 +1291,7 @@ class _GenerateV7DSW(_DSWGenerator):
 
         line = dswfile.readline()
         datas = line
-        while line:
+        while datas:
             line = dswfile.readline()
             datas = datas + line
 
@@ -1337,7 +1335,6 @@ class _GenerateV7DSW(_DSWGenerator):
         env = self.env
         if 'MSVS_SCC_PROVIDER' in env:
             scc_number_of_projects = len(self.dspfiles) + 1
-            slnguid = self.slnguid
             scc_provider = env.get('MSVS_SCC_PROVIDER', '').replace(' ', r'\u0020')
             scc_project_name = env.get('MSVS_SCC_PROJECT_NAME', '').replace(' ', r'\u0020')
             scc_connection_root = env.get('MSVS_SCC_CONNECTION_ROOT', os.curdir)
@@ -1353,6 +1350,7 @@ class _GenerateV7DSW(_DSWGenerator):
                 self.file.write('\t\tSccProjectFilePathRelativizedFromConnection0 = %s\\\\\n'
                                 % sln_relative_path_from_scc.replace('\\', '\\\\'))
             if self.version_num < 8.0:
+                slnguid = self.slnguid
                 # When present, SolutionUniqueID is automatically removed by VS 2005
                 # TODO: check for Visual Studio versions newer than 2005
                 self.file.write('\t\tSolutionUniqueID = %s\n' % slnguid)
@@ -1380,7 +1378,7 @@ class _GenerateV7DSW(_DSWGenerator):
                 self.file.write('\t\t%s|%s = %s|%s\n' % (variant, platform, variant, platform))
             else:
                 self.file.write('\t\tConfigName.%d = %s\n' % (cnt, variant))
-            cnt = cnt + 1
+            cnt += 1
         self.file.write('\tEndGlobalSection\n')
         if self.version_num <= 7.1:
             self.file.write('\tGlobalSection(ProjectDependencies) = postSolution\n'
@@ -1393,14 +1391,12 @@ class _GenerateV7DSW(_DSWGenerator):
         for name in confkeys:
             variant = self.configs[name].variant
             platform = self.configs[name].platform
-            if self.version_num >= 8.0:
-                for dspinfo in self.dspfiles_info:
-                    guid = dspinfo['GUID']
+            for dspinfo in self.dspfiles_info:
+                guid = dspinfo['GUID']
+                if self.version_num >= 8.0:
                     self.file.write('\t\t%s.%s|%s.ActiveCfg = %s|%s\n'
                                     '\t\t%s.%s|%s.Build.0 = %s|%s\n'  % (guid,variant,platform,variant,platform,guid,variant,platform,variant,platform))
-            else:
-                for dspinfo in self.dspfiles_info:
-                    guid = dspinfo['GUID']
+                else:
                     self.file.write('\t\t%s.%s.ActiveCfg = %s|%s\n'
                                     '\t\t%s.%s.Build.0 = %s|%s\n'  %(guid,variant,variant,platform,guid,variant,variant,platform))
 
@@ -1488,13 +1484,12 @@ def GenerateDSP(dspfile, source, env):
         version_num, suite = msvs_parse_version(env['MSVS_VERSION'])
     if version_num >= 10.0:
         g = _GenerateV10DSP(dspfile, source, env)
-        g.Build()
     elif version_num >= 7.0:
         g = _GenerateV7DSP(dspfile, source, env)
-        g.Build()
     else:
         g = _GenerateV6DSP(dspfile, source, env)
-        g.Build()
+
+    g.Build()
 
 def GenerateDSW(dswfile, source, env):
     """Generates a Solution/Workspace file based on the version of MSVS that is being used"""
@@ -1504,10 +1499,10 @@ def GenerateDSW(dswfile, source, env):
         version_num, suite = msvs_parse_version(env['MSVS_VERSION'])
     if version_num >= 7.0:
         g = _GenerateV7DSW(dswfile, source, env)
-        g.Build()
     else:
         g = _GenerateV6DSW(dswfile, source, env)
-        g.Build()
+
+    g.Build()
 
 
 ##############################################################################
@@ -1573,56 +1568,60 @@ def projectEmitter(target, source, env):
 
     if not source:
         source = 'prj_inputs:'
-        source = source + env.subst('$MSVSSCONSCOM', 1)
-        source = source + env.subst('$MSVSENCODING', 1)
+        source += env.subst('$MSVSSCONSCOM', 1)
+        source += env.subst('$MSVSENCODING', 1)
 
         # Project file depends on CPPDEFINES and CPPPATH
         preprocdefs = xmlify(';'.join(processDefines(env.get('CPPDEFINES', []))))
         includepath_Dirs = processIncludes(env.get('CPPPATH', []), env, None, None)
         includepath = xmlify(';'.join([str(x) for x in includepath_Dirs]))
-        source = source + "; ppdefs:%s incpath:%s"%(preprocdefs, includepath)
+        source += "; ppdefs:%s incpath:%s"%(preprocdefs, includepath)
 
         if 'buildtarget' in env and env['buildtarget'] != None:
             if SCons.Util.is_String(env['buildtarget']):
-                source = source + ' "%s"' % env['buildtarget']
+                source += ' "%s"' % env['buildtarget']
             elif SCons.Util.is_List(env['buildtarget']):
                 for bt in env['buildtarget']:
                     if SCons.Util.is_String(bt):
-                        source = source + ' "%s"' % bt
+                        source += ' "%s"' % bt
                     else:
-                        try: source = source + ' "%s"' % bt.get_abspath()
+                        try:
+                            source += ' "%s"' % bt.get_abspath()
                         except AttributeError: raise SCons.Errors.InternalError("buildtarget can be a string, a node, a list of strings or nodes, or None")
             else:
-                try: source = source + ' "%s"' % env['buildtarget'].get_abspath()
+                try:
+                    source += ' "%s"' % env['buildtarget'].get_abspath()
                 except AttributeError: raise SCons.Errors.InternalError("buildtarget can be a string, a node, a list of strings or nodes, or None")
 
         if 'outdir' in env and env['outdir'] != None:
             if SCons.Util.is_String(env['outdir']):
-                source = source + ' "%s"' % env['outdir']
+                source += ' "%s"' % env['outdir']
             elif SCons.Util.is_List(env['outdir']):
                 for s in env['outdir']:
                     if SCons.Util.is_String(s):
-                        source = source + ' "%s"' % s
+                        source += ' "%s"' % s
                     else:
-                        try: source = source + ' "%s"' % s.get_abspath()
+                        try:
+                            source += ' "%s"' % s.get_abspath()
                         except AttributeError: raise SCons.Errors.InternalError("outdir can be a string, a node, a list of strings or nodes, or None")
             else:
-                try: source = source + ' "%s"' % env['outdir'].get_abspath()
+                try:
+                    source += ' "%s"' % env['outdir'].get_abspath()
                 except AttributeError: raise SCons.Errors.InternalError("outdir can be a string, a node, a list of strings or nodes, or None")
 
         if 'name' in env:
             if SCons.Util.is_String(env['name']):
-                source = source + ' "%s"' % env['name']
+                source += ' "%s"' % env['name']
             else:
                 raise SCons.Errors.InternalError("name must be a string")
 
         if 'variant' in env:
             if SCons.Util.is_String(env['variant']):
-                source = source + ' "%s"' % env['variant']
+                source += ' "%s"' % env['variant']
             elif SCons.Util.is_List(env['variant']):
                 for variant in env['variant']:
                     if SCons.Util.is_String(variant):
-                        source = source + ' "%s"' % variant
+                        source += ' "%s"' % variant
                     else:
                         raise SCons.Errors.InternalError("name must be a string or a list of strings")
             else:
@@ -1633,17 +1632,17 @@ def projectEmitter(target, source, env):
         for s in _DSPGenerator.srcargs:
             if s in env:
                 if SCons.Util.is_String(env[s]):
-                    source = source + ' "%s' % env[s]
+                    source += ' "%s' % env[s]
                 elif SCons.Util.is_List(env[s]):
                     for t in env[s]:
                         if SCons.Util.is_String(t):
-                            source = source + ' "%s"' % t
+                            source += ' "%s"' % t
                         else:
                             raise SCons.Errors.InternalError(s + " must be a string or a list of strings")
                 else:
                     raise SCons.Errors.InternalError(s + " must be a string or a list of strings")
 
-        source = source + ' "%s"' % str(target[0])
+        source += ' "%s"' % str(target[0])
         source = [SCons.Node.Python.Value(source)]
 
     targetlist = [target[0]]
@@ -1652,7 +1651,7 @@ def projectEmitter(target, source, env):
     if env.get('auto_build_solution', 1):
         env['projects'] = [env.File(t).srcnode() for t in targetlist]
         t, s = solutionEmitter(target, target, env)
-        targetlist = targetlist + t
+        targetlist += t
 
     # Beginning with Visual Studio 2010 for each project file (.vcxproj) we have additional file (.vcxproj.filters)
     if float(env['MSVS_VERSION']) >= 10.0:
@@ -1679,17 +1678,17 @@ def solutionEmitter(target, source, env):
 
         if 'name' in env:
             if SCons.Util.is_String(env['name']):
-                source = source + ' "%s"' % env['name']
+                source += ' "%s"' % env['name']
             else:
                 raise SCons.Errors.InternalError("name must be a string")
 
         if 'variant' in env:
             if SCons.Util.is_String(env['variant']):
-                source = source + ' "%s"' % env['variant']
+                source += ' "%s"' % env['variant']
             elif SCons.Util.is_List(env['variant']):
                 for variant in env['variant']:
                     if SCons.Util.is_String(variant):
-                        source = source + ' "%s"' % variant
+                        source += ' "%s"' % variant
                     else:
                         raise SCons.Errors.InternalError("name must be a string or a list of strings")
             else:
@@ -1699,19 +1698,19 @@ def solutionEmitter(target, source, env):
 
         if 'slnguid' in env:
             if SCons.Util.is_String(env['slnguid']):
-                source = source + ' "%s"' % env['slnguid']
+                source += ' "%s"' % env['slnguid']
             else:
                 raise SCons.Errors.InternalError("slnguid must be a string")
 
         if 'projects' in env:
             if SCons.Util.is_String(env['projects']):
-                source = source + ' "%s"' % env['projects']
+                source += ' "%s"' % env['projects']
             elif SCons.Util.is_List(env['projects']):
                 for t in env['projects']:
                     if SCons.Util.is_String(t):
-                        source = source + ' "%s"' % t
+                        source += ' "%s"' % t
 
-        source = source + ' "%s"' % str(target[0])
+        source += ' "%s"' % str(target[0])
         source = [SCons.Node.Python.Value(source)]
 
     return ([target[0]], source)
@@ -1782,11 +1781,7 @@ def generate(env):
         env['MSVS']['PROJECTSUFFIX']  = '.vcxproj'
         env['MSVS']['SOLUTIONSUFFIX'] = '.sln'
 
-    if (version_num >= 10.0):
-        env['MSVSENCODING'] = 'utf-8'
-    else:
-        env['MSVSENCODING'] = 'Windows-1252'
-
+    env['MSVSENCODING'] = 'utf-8' if (version_num >= 10.0) else 'Windows-1252'
     env['GET_MSVSPROJECTSUFFIX']  = GetMSVSProjectSuffix
     env['GET_MSVSSOLUTIONSUFFIX']  = GetMSVSSolutionSuffix
     env['MSVSPROJECTSUFFIX']  = '${GET_MSVSPROJECTSUFFIX}'

@@ -600,9 +600,7 @@ def getCallsDecls():
 
 
 def getCallsCode():
-    result = []
-
-    result.append(template_helper_impl_decl % {})
+    result = [template_helper_impl_decl % {}]
 
     for quick_call_used in sorted(quick_calls_used.union(quick_instance_calls_used)):
         result.append(

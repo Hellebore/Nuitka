@@ -127,7 +127,7 @@ class Progressor(object):
         if self.prev:
             length = len(self.prev)
             if self.prev[-1] in ('\n', '\r'):
-                length = length - 1
+                length -= 1
             self.write(' ' * length + '\r')
             self.prev = ''
 
@@ -420,10 +420,7 @@ class TreePrinter(object):
         children = node.all_children(None)
         return [x for x in children if x.has_builder()]
     def display(self, t):
-        if self.derived:
-            func = self.get_derived_children
-        else:
-            func = self.get_all_children
+        func = self.get_derived_children if self.derived else self.get_all_children
         s = self.status and 2 or 0
         SCons.Util.print_tree(t, func, prune=self.prune, showtags=s)
 
@@ -475,8 +472,7 @@ OptionsParser = FakeOptionParser()
 def AddOption(*args, **kw):
     if 'default' not in kw:
         kw['default'] = None
-    result = OptionsParser.add_local_option(*args, **kw)
-    return result
+    return OptionsParser.add_local_option(*args, **kw)
 
 def GetOption(name):
     return getattr(OptionsParser.values, name)
@@ -511,7 +507,7 @@ class CountStats(Stats):
         for s in self.stats:
             for n, c in s:
                 stats_table[n][i] = c
-            i = i + 1
+            i += 1
         self.outfp.write("Object counts:\n")
         pre = ["   "]
         post = ["   %s\n"]
@@ -520,8 +516,8 @@ class CountStats(Stats):
         fmt2 = ''.join(pre + [' %7d']*l + post)
         labels = self.labels[:l]
         labels.append(("", "Class"))
-        self.outfp.write(fmt1 % tuple([x[0] for x in labels]))
-        self.outfp.write(fmt1 % tuple([x[1] for x in labels]))
+        self.outfp.write(fmt1 % tuple(x[0] for x in labels))
+        self.outfp.write(fmt1 % tuple(x[1] for x in labels))
         for k in sorted(stats_table.keys()):
             r = stats_table[k][:l] + [k]
             self.outfp.write(fmt2 % tuple(r))
@@ -677,10 +673,7 @@ def _set_debug_values(options):
 def _create_path(plist):
     path = '.'
     for d in plist:
-        if os.path.isabs(d):
-            path = d
-        else:
-            path = path + '/' + d
+        path = d if os.path.isabs(d) else path + '/' + d
     return path
 
 def _load_site_scons_dir(topdir, site_dir_name=None):
@@ -1151,7 +1144,7 @@ def _build_targets(fs, options, targets, target_top):
                 # -U, local SConscript Default() targets
                 target_top = fs.Dir(target_top)
                 def check_dir(x, target_top=target_top):
-                    if hasattr(x, 'cwd') and not x.cwd is None:
+                    if hasattr(x, 'cwd') and x.cwd is not None:
                         cwd = x.cwd.srcnode()
                         return cwd == target_top
                     else:

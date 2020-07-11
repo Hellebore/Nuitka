@@ -456,7 +456,7 @@ def CheckTypeSize(context, type_name, header = None, language = None, expect = N
         return msg
 
     src = includetext + header
-    if not expect is None:
+    if expect is not None:
         # Only check if the given size is the right one
         context.Display('Checking %s is %d bytes... ' % (type_name, expect))
 
@@ -476,15 +476,15 @@ int main()
 """
 
         st = context.CompileProg(src % (type_name, expect), suffix)
-        if not st:
+        if st:
+            context.Display("no\n")
+            _LogFailed(context, src, st)
+            return 0
+        else:
             context.Display("yes\n")
             _Have(context, "SIZEOF_%s" % type_name, expect,
                   "The size of `%s', as computed by sizeof." % type_name)
             return expect
-        else:
-            context.Display("no\n")
-            _LogFailed(context, src, st)
-            return 0
     else:
         # Only check if the given size is the right one
         context.Message('Checking size of %s ... ' % type_name)
@@ -513,16 +513,16 @@ int main() {
             st = 1
             size = 0
 
-        if not st:
-            context.Display("yes\n")
-            _Have(context, "SIZEOF_%s" % type_name, size,
-                  "The size of `%s', as computed by sizeof." % type_name)
-            return size
-        else:
+        if st:
             context.Display("no\n")
             _LogFailed(context, src, st)
             return 0
 
+        else:
+            context.Display("yes\n")
+            _Have(context, "SIZEOF_%s" % type_name, size,
+                  "The size of `%s', as computed by sizeof." % type_name)
+            return size
     return 0
 
 def CheckDeclaration(context, symbol, includes = None, language = None):
@@ -663,10 +663,7 @@ return 0;
             l = [ lib_name ]
             if extra_libs:
                 l.extend(extra_libs)
-            if append:
-                oldLIBS = context.AppendLIBS(l)
-            else:
-                oldLIBS = context.PrependLIBS(l)
+            oldLIBS = context.AppendLIBS(l) if append else context.PrependLIBS(l)
             sym = "HAVE_LIB" + lib_name
         else:
             oldLIBS = -1
@@ -734,11 +731,7 @@ def _Have(context, key, have, comment = None):
     else:
         line = "#define %s %s\n" % (key_up, str(have))
 
-    if comment is not None:
-        lines = "\n/* %s */\n" % comment + line
-    else:
-        lines = "\n" + line
-
+    lines = "\n/* %s */\n" % comment + line if comment is not None else "\n" + line
     if context.headerfilename:
         f = open(context.headerfilename, "a")
         f.write(lines)
@@ -760,7 +753,7 @@ def _LogFailed(context, text, msg):
         n = 1
         for line in lines:
             context.Log("%d: %s\n" % (n, line))
-            n = n + 1
+            n += 1
     if LogErrorMessages:
         context.Log("Error message: %s\n" % msg)
 

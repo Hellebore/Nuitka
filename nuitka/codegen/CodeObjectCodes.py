@@ -129,8 +129,10 @@ def getCodeObjectsInitCode(context):
 
         statements.append(code)
 
-        if context.getOwner().getFullName() == "__main__":
-            if code_object_key[1] == "<module>":
-                statements.append("codeobj_main = %s;" % code_identifier)
+        if (
+            context.getOwner().getFullName() == "__main__"
+            and code_object_key[1] == "<module>"
+        ):
+            statements.append("codeobj_main = %s;" % code_identifier)
 
     return statements

@@ -85,15 +85,14 @@ module_names = set()
 
 
 def _detectedPrecompiledFile(filename, module_name, result, user_provided, technical):
-    if filename.endswith(".pyc"):
-        if os.path.isfile(filename[:-1]):
-            return _detectedSourceFile(
-                filename=filename[:-1],
-                module_name=module_name,
-                result=result,
-                user_provided=user_provided,
-                technical=technical,
-            )
+    if filename.endswith(".pyc") and os.path.isfile(filename[:-1]):
+        return _detectedSourceFile(
+            filename=filename[:-1],
+            module_name=module_name,
+            result=result,
+            user_provided=user_provided,
+            technical=technical,
+        )
 
     if module_name in module_names:
         return
@@ -301,9 +300,8 @@ def _detectImports(command, user_provided, technical):
                     # Python3 started lying in "__name__" for the "_decimal"
                     # calls itself "decimal", which then is wrong and also
                     # clashes with "decimal" proper
-                    if python_version >= 300:
-                        if module_name == "decimal":
-                            module_name = ModuleName("_decimal")
+                    if python_version >= 300 and module_name == "decimal":
+                        module_name = ModuleName("_decimal")
 
                     detections.append((module_name, 2, "shlib", filename))
             elif origin == b"dynamically":
@@ -328,6 +326,8 @@ def _detectImports(command, user_provided, technical):
                 user_provided=user_provided,
                 technical=technical,
             )
+        elif kind == "shlib":
+            _detectedShlibFile(filename=filename, module_name=module_name)
         elif kind == "sourcefile":
             _detectedSourceFile(
                 filename=filename,
@@ -336,8 +336,6 @@ def _detectImports(command, user_provided, technical):
                 user_provided=user_provided,
                 technical=technical,
             )
-        elif kind == "shlib":
-            _detectedShlibFile(filename=filename, module_name=module_name)
         else:
             assert False, kind
 
@@ -598,11 +596,7 @@ def _detectBinaryPathDLLsPosix(dll_filename):
 
             part = line.split(b" => ", 2)[1]
 
-            if b"(" in part:
-                filename = part[: part.rfind(b"(") - 1]
-            else:
-                filename = part
-
+            filename = part[: part.rfind(b"(") - 1] if b"(" in part else part
             if not filename:
                 continue
 
@@ -696,11 +690,7 @@ def _detectBinaryPathDLLsMacOS(original_dir, binary_filename, keep_unresolved):
             continue
 
         filename = line.split(b" (")[0].strip()
-        stop = False
-        for w in system_paths:
-            if filename.startswith(w):
-                stop = True
-                break
+        stop = any(filename.startswith(w) for w in system_paths)
         if not stop:
             if python_version >= 300:
                 filename = filename.decode("utf-8")
@@ -708,18 +698,13 @@ def _detectBinaryPathDLLsMacOS(original_dir, binary_filename, keep_unresolved):
             # print("adding", filename)
             result.add(filename)
 
-    resolved_result = _resolveBinaryPathDLLsMacOS(
+    return _resolveBinaryPathDLLsMacOS(
         original_dir, binary_filename, result, keep_unresolved
     )
-    return resolved_result
 
 
 def _resolveBinaryPathDLLsMacOS(original_dir, binary_filename, paths, keep_unresolved):
-    if keep_unresolved:
-        result = {}
-    else:
-        result = set()
-
+    result = {} if keep_unresolved else set()
     rpaths = _detectBinaryRPathsMacOS(original_dir, binary_filename)
 
     for path in paths:
@@ -1393,10 +1378,11 @@ def copyUsedDLLs(source_dir, dist_dir, standalone_entry_points):
         source_dir=source_dir,
         standalone_entry_points=standalone_entry_points,
         use_cache=not Options.shallNotUseDependsExeCachedResults()
-        and not Options.getWindowsDependencyTool() == "depends.exe",
+        and Options.getWindowsDependencyTool() != "depends.exe",
         update_cache=not Options.shallNotStoreDependsExeCachedResults()
-        and not Options.getWindowsDependencyTool() == "depends.exe",
+        and Options.getWindowsDependencyTool() != "depends.exe",
     )
+
 
     removed_dlls = set()
 
